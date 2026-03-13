@@ -1005,8 +1005,8 @@ async function getWelcome() {
     if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
     else if (hour >= 18) greeting = 'Boa noite';
     
-    addMsg('serena', `${greeting}, ${firstName}! Sobre o que você quer falar hoje?`);
-    history.push({ role: 'assistant', content: `${greeting}, ${firstName}! Sobre o que você quer falar hoje?` });
+    addMsg('serena', `${greeting}, ${firstName}!\nSobre o que você quer falar hoje?`);
+    history.push({ role: 'assistant', content: `${greeting}, ${firstName}!\nSobre o que você quer falar hoje?` });
     showOptionButtons();
     return;
   }
@@ -1418,7 +1418,7 @@ async function openInsightCard(fullText) {
       
       <div class="card-modal-actions">
         <button class="btn-copy-text" onclick="copyInsightText()" disabled>Copiar texto</button>
-        <button class="btn-save-img" onclick="saveInsightImage()" disabled>Salvar imagem ↓</button>
+        <button class="btn-save-img" onclick="shareToInstagram()" disabled>Compartilhar ↗</button>
       </div>
     </div>`;
 
@@ -1431,23 +1431,10 @@ async function openInsightCard(fullText) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'chat',
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
-        system: `Você sintetiza mensagens de autoconhecimento em frases inspiracionais para compartilhar nas redes sociais. 
-Regras:
-- Máximo 2 frases curtas e poderosas (total máximo 140 caracteres)
-- Deve ser uma mensagem universal e inspiracional, não pessoal
-- Tom: poético, direto, profundo
-- Sem usar nomes próprios
-- Sem emojis
-- A frase deve fazer sentido isolada, fora do contexto da conversa
-- Pense em algo que alguém leria num card de Instagram e salvaria
-
-Exemplos de bom resultado:
-"Sua frustração não é fraqueza. É seu corpo dizendo que esse caminho não é seu."
-"Você não precisa fazer mais. Precisa fazer o que é seu."
-"O convite certo muda tudo. Pare de se oferecer — deixe ser vista."`,
-        messages: [{ role: 'user', content: `Sintetize esta mensagem em 1-2 frases inspiracionais para um card de Instagram:\n\n${cleanText}` }]
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 80,
+        system: `Sintetize mensagens em 1-2 frases inspiracionais para card de Instagram. Máximo 140 caracteres total. Tom poético e direto. Sem nomes, sem emojis. Deve fazer sentido isolada. Responda APENAS com a frase, nada mais.`,
+        messages: [{ role: 'user', content: `Sintetize:\n${cleanText.substring(0, 500)}` }]
       })
     });
     
@@ -1493,7 +1480,7 @@ function copyInsightText() {
   }
 }
 
-async function saveInsightImage() {
+async function shareToInstagram() {
   const btn = document.querySelector('.btn-save-img');
   btn.textContent = 'Gerando...';
   btn.disabled = true;
@@ -1522,22 +1509,20 @@ async function saveInsightImage() {
 
     // Logo
     ctx.fillStyle = 'rgba(155,125,97,0.55)';
-    ctx.font = '300 22px "Work Sans", sans-serif';
-    ctx.letterSpacing = '8px';
-    ctx.fillText('✦  VIDA AUTORAL', 100, 200);
+    ctx.font = '300 24px "Work Sans", sans-serif';
+    ctx.fillText('✦  V I D A   A U T O R A L', 100, 260);
 
     // Main text
-    const insightText = document.querySelector('.card-preview-text')?.textContent || '';
+    const insightText = document.getElementById('insight-text-area')?.textContent || '';
     ctx.fillStyle = '#2C2017';
-    ctx.font = '300 42px "Work Sans", sans-serif';
-    ctx.letterSpacing = '0px';
+    ctx.font = '300 52px "Work Sans", sans-serif';
     
     // Word wrap
     const maxWidth = W - 200;
-    const lineHeight = 68;
+    const lineHeight = 78;
     const words = insightText.split(' ');
     let line = '';
-    let y = 500;
+    let y = 700;
     
     for (let word of words) {
       const testLine = line + word + ' ';
@@ -1545,51 +1530,60 @@ async function saveInsightImage() {
         ctx.fillText(line.trim(), 100, y);
         line = word + ' ';
         y += lineHeight;
-        if (y > 1500) { // Don't overflow
-          ctx.fillText(line.trim() + '...', 100, y);
-          break;
-        }
+        if (y > 1400) break;
       } else {
         line = testLine;
       }
     }
-    if (y <= 1500) ctx.fillText(line.trim(), 100, y);
+    if (y <= 1400) ctx.fillText(line.trim(), 100, y);
 
-    // Footer - type badge
+    // Footer
     const emoji = TR.typeEmoji[user.type] || '✦';
-    const firstName = user.name.split(' ')[0];
-    
-    ctx.fillStyle = 'rgba(155,125,97,0.55)';
+    ctx.fillStyle = 'rgba(155,125,97,0.5)';
     ctx.font = '300 28px "Work Sans", sans-serif';
-    ctx.letterSpacing = '3px';
     ctx.fillText(`${emoji}  ${user.type}  ·  ${user.profile}`, 100, H - 220);
     
-    ctx.fillStyle = 'rgba(155,125,97,0.4)';
-    ctx.font = '300 26px "Work Sans", sans-serif';
-    ctx.fillText(firstName, 100, H - 170);
+    ctx.fillStyle = 'rgba(155,125,97,0.35)';
+    ctx.font = '300 24px "Work Sans", sans-serif';
+    ctx.fillText(user.name.split(' ')[0], 100, H - 175);
 
     // Large symbol
-    ctx.fillStyle = 'rgba(155,125,97,0.12)';
-    ctx.font = '200px "Work Sans", sans-serif';
-    ctx.fillText('✦', W - 280, H - 100);
+    ctx.fillStyle = 'rgba(155,125,97,0.1)';
+    ctx.font = '220px "Work Sans", sans-serif';
+    ctx.fillText('✦', W - 300, H - 80);
 
-    // Download
-    const link = document.createElement('a');
-    link.download = `serena-insight-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    // Try Web Share API (works on mobile — opens Instagram directly)
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    const file = new File([blob], 'serena-insight.png', { type: 'image/png' });
 
-    btn.textContent = 'Salvo ✓';
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Meu insight — Vida Autoral',
+        text: insightText
+      });
+      btn.textContent = 'Compartilhado ✓';
+    } else {
+      // Fallback: download the image
+      const link = document.createElement('a');
+      link.download = `serena-insight-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = 'Salvo ✓';
+    }
+
     setTimeout(() => {
-      btn.textContent = 'Salvar imagem ↓';
+      btn.textContent = 'Compartilhar ↗';
       btn.disabled = false;
-    }, 2000);
+    }, 2500);
 
   } catch(e) {
-    console.error('Image generation error:', e);
-    btn.textContent = 'Salvar imagem ↓';
+    console.error('Share error:', e);
+    btn.textContent = 'Compartilhar ↗';
     btn.disabled = false;
-    alert('Não foi possível gerar a imagem. Tente copiar o texto.');
+    if (e.name !== 'AbortError') {
+      alert('Não foi possível compartilhar. A imagem foi salva no dispositivo.');
+    }
   }
 }
 
