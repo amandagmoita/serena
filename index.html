@@ -958,12 +958,70 @@ async function sendMsg() {
   addMsg('user', text);
   history.push({ role: 'user', content: text });
   showTyping();
-  const resp = await callClaude(text, false);
+  const rawResp = await callClaude(text, false);
   hideTyping();
-  addMsg('serena', resp);
-  history.push({ role: 'assistant', content: resp });
+
+  // Parse options from response
+  const { message, options } = parseResponse(rawResp);
+  
+  addMsg('serena', message);
+  history.push({ role: 'assistant', content: message });
   document.getElementById('send-btn').disabled = false;
-  if (history.length % 6 === 0) showChips();
+
+  // Show contextual option buttons
+  if (options.length > 0) {
+    showContextOptions(options);
+  }
+}
+
+function parseResponse(raw) {
+  const optionsMatch = raw.match(/---OPCOES---([\s\S]*?)---FIM---/);
+  let message = raw;
+  let options = [];
+  
+  if (optionsMatch) {
+    // Remove the options block from the message
+    message = raw.replace(/---OPCOES---[\s\S]*?---FIM---/, '').trim();
+    
+    // Parse options
+    const lines = optionsMatch[1].trim().split('\n');
+    options = lines
+      .map(line => {
+        const parts = line.trim().split('|');
+        if (parts.length >= 2) {
+          return { emoji: parts[0].trim(), text: parts.slice(1).join('|').trim() };
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .slice(0, 3);
+  }
+  
+  return { message, options };
+}
+
+function showContextOptions(options) {
+  const container = document.getElementById('msgs');
+  
+  const optionsWrap = document.createElement('div');
+  optionsWrap.className = 'options-wrap';
+  optionsWrap.id = 'context-options';
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="ob-emoji">${opt.emoji}</span><span class="ob-text">${opt.text}</span>`;
+    btn.onclick = () => {
+      const el = document.getElementById('context-options');
+      if (el) el.remove();
+      document.getElementById('msg-input').value = opt.text;
+      sendMsg();
+    };
+    optionsWrap.appendChild(btn);
+  });
+
+  container.appendChild(optionsWrap);
+  container.scrollTop = container.scrollHeight;
 }
 
 function addMsg(role, text) {
@@ -1000,42 +1058,7 @@ function showTyping() {
 
 function hideTyping() { busy = false; const t = document.getElementById('typing'); if (t) t.remove(); }
 
-function showChips() {
-  // Show follow-up options as buttons in the message area
-  const container = document.getElementById('msgs');
-  
-  // Remove any existing options
-  const existing = document.getElementById('followup-options');
-  if (existing) existing.remove();
-  
-  const optionsWrap = document.createElement('div');
-  optionsWrap.className = 'options-wrap';
-  optionsWrap.id = 'followup-options';
-
-  const tipo = HD_KNOWLEDGE[user.type];
-  const followUps = [
-    { emoji: '🔍', text: 'Quero aprofundar mais nesse tema' },
-    { emoji: '💼', text: 'Como isso se aplica na minha carreira?' },
-    { emoji: '❤️', text: 'E nos meus relacionamentos?' },
-    { emoji: '🔄', text: 'Quero explorar outro aspecto do meu mapa' }
-  ];
-
-  followUps.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.innerHTML = `<span class="ob-emoji">${opt.emoji}</span><span class="ob-text">${opt.text}</span>`;
-    btn.onclick = () => {
-      const el = document.getElementById('followup-options');
-      if (el) el.remove();
-      document.getElementById('msg-input').value = opt.text;
-      sendMsg();
-    };
-    optionsWrap.appendChild(btn);
-  });
-
-  container.appendChild(optionsWrap);
-  container.scrollTop = container.scrollHeight;
-}
+// showChips replaced by showContextOptions and showOptionButtons
 
 // ─── CLAUDE API ───────────────────────────────────────────
 function buildSystem() {
@@ -1115,7 +1138,9 @@ REGRA 2 — ESTRUTURA DAS RESPOSTAS
 2. Identifique o aspecto do mapa mais relevante e explique POR QUE esse aspecto é a chave
 3. Aprofunde com luz E sombra desse aspecto — o que acontece quando está alinhada vs. desalinhada
 4. Dê um exemplo concreto da vida real
-5. Termine com UMA pergunta reflexiva que a ajude a sentir no corpo (não na mente)
+5. Termine com UMA pergunta reflexiva — VARIE as perguntas. Não repita sempre a mesma.
+
+IMPORTANTE SOBRE GERADORA: Para Geradoras, NÃO pergunte toda vez "expande ou contrai?" ou "o que seu corpo diz?". Referencie a resposta sacral de formas variadas e naturais, como: perguntar sobre momentos de satisfação vs frustração, o que a faz perder a noção do tempo, quando ela sente energia vs quando sente peso, o que a faz acordar animada. A resposta sacral é importante mas não precisa ser mencionada em TODA resposta.
 
 REGRA 3 — DOSAGEM DE INFORMAÇÃO
 - 1 pergunta = 1 aspecto do mapa aprofundado
@@ -1133,6 +1158,25 @@ REGRA 4 — LINGUAGEM E TOM
 • Use o primeiro nome (${user.name.split(' ')[0]}) com naturalidade
 • Quando ela falar de se sentir "estranha" ou "errada", normalize usando o mapa
 • Quando tocar em carreira/negócios, USE Sol (cliente de alma), Vênus (magnetismo) e Canais (dons)
+
+REGRA 5 — SUGESTÕES DE PRÓXIMOS PASSOS (OBRIGATÓRIO)
+Ao final de TODA resposta (exceto boas-vindas), adicione EXATAMENTE 3 sugestões de direcionamento para a conversa. Cada sugestão deve ser específica ao que foi discutido — NÃO use sugestões genéricas.
+
+Formato OBRIGATÓRIO (use EXATAMENTE esta estrutura com os delimitadores):
+---OPCOES---
+emoji|texto da sugestão
+emoji|texto da sugestão
+emoji|texto da sugestão
+---FIM---
+
+Exemplo: se ela perguntou sobre frustração no trabalho e você falou do Sol no Portão 21:
+---OPCOES---
+🔍|Me conta mais sobre como o Portão 21 afeta minhas decisões de carreira
+💡|Como posso usar essa energia de liderança sem parecer controladora?
+🌀|Será que minha frustração tem a ver com meus centros abertos?
+---FIM---
+
+As sugestões devem aprofundar o tema atual OU abrir caminhos relacionados. NUNCA repita sugestões genéricas como "quero saber mais sobre meu tipo".
 
 ══ O QUE VOCÊ NÃO FAZ ══
 • NÃO lista vários aspectos do mapa em sequência sem aprofundar nenhum
