@@ -421,8 +421,8 @@
 </div>
 
 <script>
-const BG_API = 'https://api.bodygraphchart.com';
-const BG_KEY = 'cea5ef7e-c3c9-4289-a29a-7d983d643989';
+// API keys are stored securely in Vercel environment variables
+// All API calls go through /api/chat serverless function
 const STORAGE_KEY = 'serena_user_v3';
 
 // ─── GATES KNOWLEDGE BASE (64 portões) ───────────────────
@@ -598,7 +598,11 @@ function searchCity(query) {
 
   citySearchTimeout = setTimeout(async () => {
     try {
-      const res = await fetch(`${BG_API}/v210502/locations?api_key=${BG_KEY}&query=${encodeURIComponent(query)}`);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'locations', query })
+      });
       const data = await res.json();
       if (!data || data.length === 0) {
         suggestions.innerHTML = '<div class="city-option" style="color:rgba(44,32,23,0.4);cursor:default">Nenhuma cidade encontrada</div>';
@@ -653,8 +657,12 @@ async function startSession() {
 
   try {
     const datetime = `${date} ${time}`;
-    const url = `${BG_API}/v221006/hd-data?api_key=${BG_KEY}&date=${encodeURIComponent(datetime)}&timezone=${encodeURIComponent(timezone)}`;
-    const res = await fetch(url);
+    const url = '/api/chat';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'hd-data', date: datetime, timezone })
+    });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     hdData = await res.json();
     if (!hdData || !hdData.Properties) throw new Error('Dados inválidos');
@@ -934,7 +942,7 @@ async function callClaude(userMsg, isWelcome) {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: buildSystem(), messages })
+      body: JSON.stringify({ action: 'chat', model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: buildSystem(), messages })
     });
     const data = await res.json();
     if (data.content?.[0]?.text) return data.content[0].text;
