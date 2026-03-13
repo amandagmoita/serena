@@ -1180,6 +1180,13 @@ function showContextOptions(options) {
   container.scrollTop = container.scrollHeight;
 }
 
+function formatMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
 function addMsg(role, text) {
   const container = document.getElementById('msgs');
   const wrap = document.createElement('div');
@@ -1189,7 +1196,7 @@ function addMsg(role, text) {
   av.textContent = role === 'serena' ? '✦' : (user.name?.[0]?.toUpperCase() || '?');
   const bub = document.createElement('div');
   bub.className = 'm-bubble';
-  bub.innerHTML = text.replace(/\n/g, '<br>');
+  bub.innerHTML = formatMarkdown(text);
   
   // Add save insight button for Serena messages
   if (role === 'serena' && text.length > 60) {
@@ -1378,23 +1385,14 @@ async function callClaude(userMsg, isWelcome) {
   }
 }
 // ─── INSIGHT CARD ─────────────────────────────────────────
-function openInsightCard(fullText) {
-  // Extract the most impactful part (first ~280 chars or 3 sentences)
-  const sentences = fullText.split(/[.!?]+/).filter(s => s.trim().length > 10);
-  let insightText = '';
-  for (let s of sentences) {
-    if ((insightText + s).length > 280) break;
-    insightText += s.trim() + '. ';
-  }
-  insightText = insightText.trim() || fullText.substring(0, 280) + '...';
-  
-  // Remove any HTML tags
-  insightText = insightText.replace(/<[^>]*>/g, '');
-
+async function openInsightCard(fullText) {
   const emoji = TR.typeEmoji[user.type] || '✦';
   const firstName = user.name.split(' ')[0];
+  
+  // Clean the text
+  const cleanText = fullText.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
 
-  // Create modal
+  // Create modal with loading state
   const overlay = document.createElement('div');
   overlay.className = 'card-modal-overlay';
   overlay.id = 'insight-modal';
@@ -1409,7 +1407,9 @@ function openInsightCard(fullText) {
       
       <div class="card-preview" id="card-preview">
         <div class="card-preview-logo">✦ VIDA AUTORAL</div>
-        <div class="card-preview-text">${insightText}</div>
+        <div class="card-preview-text" id="insight-text-area" style="display:flex;align-items:center;justify-content:center;min-height:120px;">
+          <span class="loading-label" style="font-size:0.7rem;">Sintetizando seu insight...</span>
+        </div>
         <div class="card-preview-footer">
           <div class="card-preview-type">${emoji} ${user.type} · ${user.profile}<br>${firstName}</div>
           <div class="card-preview-symbol">✦</div>
@@ -1417,12 +1417,69 @@ function openInsightCard(fullText) {
       </div>
       
       <div class="card-modal-actions">
-        <button class="btn-copy-text" onclick="copyInsightText()">Copiar texto</button>
-        <button class="btn-save-img" onclick="saveInsightImage()">Salvar imagem ↓</button>
+        <button class="btn-copy-text" onclick="copyInsightText()" disabled>Copiar texto</button>
+        <button class="btn-save-img" onclick="saveInsightImage()" disabled>Salvar imagem ↓</button>
       </div>
     </div>`;
 
   document.body.appendChild(overlay);
+
+  // Generate inspirational synthesis via Claude
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'chat',
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        system: `Você sintetiza mensagens de autoconhecimento em frases inspiracionais para compartilhar nas redes sociais. 
+Regras:
+- Máximo 2 frases curtas e poderosas (total máximo 140 caracteres)
+- Deve ser uma mensagem universal e inspiracional, não pessoal
+- Tom: poético, direto, profundo
+- Sem usar nomes próprios
+- Sem emojis
+- A frase deve fazer sentido isolada, fora do contexto da conversa
+- Pense em algo que alguém leria num card de Instagram e salvaria
+
+Exemplos de bom resultado:
+"Sua frustração não é fraqueza. É seu corpo dizendo que esse caminho não é seu."
+"Você não precisa fazer mais. Precisa fazer o que é seu."
+"O convite certo muda tudo. Pare de se oferecer — deixe ser vista."`,
+        messages: [{ role: 'user', content: `Sintetize esta mensagem em 1-2 frases inspiracionais para um card de Instagram:\n\n${cleanText}` }]
+      })
+    });
+    
+    const data = await res.json();
+    let insightText = data.content?.[0]?.text || '';
+    
+    // Clean up quotes if Claude wrapped them
+    insightText = insightText.replace(/^[""]|[""]$/g, '').trim();
+    
+    // Update the card
+    const textArea = document.getElementById('insight-text-area');
+    if (textArea) {
+      textArea.style = '';
+      textArea.textContent = insightText;
+    }
+    
+    // Enable buttons
+    document.querySelector('.btn-copy-text').disabled = false;
+    document.querySelector('.btn-save-img').disabled = false;
+    
+  } catch(e) {
+    console.error('Insight generation error:', e);
+    // Fallback: use first sentence
+    const fallback = cleanText.split(/[.!?]/)[0]?.trim() + '.';
+    const textArea = document.getElementById('insight-text-area');
+    if (textArea) {
+      textArea.style = '';
+      textArea.textContent = fallback;
+    }
+    document.querySelector('.btn-copy-text').disabled = false;
+    document.querySelector('.btn-save-img').disabled = false;
+  }
 }
 
 function copyInsightText() {
