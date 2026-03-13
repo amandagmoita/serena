@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serena — Vida Autoral</title>
+<link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Work+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --milky: #9B7D61;
+    --peach: #DAA38F;
+    --wheat: #E9D7C0;
+    --eucalyptus: #92ADA4;
+    --cream: #FED8A6;
+    --dark: #2C2017;
+    --white: #FFFFFF;
+    --glass: rgba(255,255,255,0.72);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    background: var(--wheat);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* LOADING */
+  #screen-loading {
+    position: fixed; inset: 0; z-index: 200;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(160deg, var(--wheat), var(--cream) 60%, var(--peach));
+  }
+  .orb {
+    width: 72px; height: 72px;
+    background: linear-gradient(135deg, var(--milky), var(--peach), var(--eucalyptus));
+    border-radius: 50%;
+    margin-bottom: 2rem;
+    animation: orbPulse 2s ease infinite;
+  }
+  .loading-label {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.78rem;
+    letter-spacing: 0.25em;
+    color: var(--milky);
+    animation: breathe 2s ease infinite;
+  }
+  .loading-sub {
+    font-size: 0.72rem;
+    color: rgba(44,32,23,0.45);
+    margin-top: 0.6rem;
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.6;
+  }
+
+  /* ONBOARDING */
+  #screen-onboarding {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2.5rem 1.25rem 3rem;
+    background: linear-gradient(160deg, var(--wheat) 0%, var(--cream) 55%, rgba(218,163,143,0.4) 100%);
+    overflow-y: auto;
+    position: relative;
+  }
+  #screen-onboarding::before {
+    content: '';
+    position: fixed;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(155,125,97,0.1) 0%, transparent 70%);
+    top: -150px; right: -150px;
+    pointer-events: none;
+  }
+  .logo-wrap {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.7s ease both;
+  }
+  .triangle-logo { width: 36px; height: 36px; margin: 0 auto 0.75rem; }
+  .brand-tag {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--milky);
+    opacity: 0.7;
+  }
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 500px;
+    width: 100%;
+    border: 1px solid rgba(155,125,97,0.14);
+    box-shadow: 0 20px 60px rgba(44,32,23,0.07);
+    animation: fadeUp 0.7s ease 0.15s both;
+    position: relative; z-index: 1;
+  }
+  .card-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 6px 20px rgba(155,125,97,0.28);
+  }
+  .card h2 {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.6rem;
+    color: var(--milky);
+    text-align: center;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.04em;
+  }
+  .card .subtitle {
+    font-size: 0.88rem;
+    color: rgba(44,32,23,0.55);
+    text-align: center;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+  .field { margin-bottom: 1.1rem; }
+  .field label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--milky);
+    font-weight: 400;
+    margin-bottom: 0.45rem;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.75);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.9rem;
+    color: var(--dark);
+    outline: none;
+    transition: all 0.22s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field textarea:focus {
+    border-color: var(--milky);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(155,125,97,0.09);
+  }
+  .field textarea { resize: none; height: 80px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+  /* City autocomplete */
+  .city-wrap { position: relative; }
+  .city-suggestions {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: white;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+    box-shadow: 0 8px 24px rgba(44,32,23,0.1);
+  }
+  .city-suggestions.open { display: block; }
+  .city-option {
+    padding: 0.65rem 1rem;
+    font-size: 0.82rem;
+    color: var(--dark);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    border-bottom: 1px solid rgba(155,125,97,0.06);
+  }
+  .city-option:hover { background: rgba(155,125,97,0.06); }
+  .city-option:last-child { border-bottom: none; }
+  .city-option .co-region { font-size: 0.7rem; color: rgba(44,32,23,0.4); margin-top: 0.1rem; }
+
+  .error-banner {
+    background: rgba(218,163,143,0.2);
+    border: 1.5px solid var(--peach);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.82rem;
+    color: var(--dark);
+    line-height: 1.5;
+    display: none;
+  }
+  .error-banner.visible { display: block; animation: fadeUp 0.3s ease; }
+
+  .btn {
+    width: 100%;
+    padding: 0.95rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Aboreto', cursive;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: all 0.28s;
+    margin-top: 0.25rem;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white;
+    box-shadow: 0 4px 18px rgba(155,125,97,0.28);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(155,125,97,0.38); }
+  .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .note {
+    font-size: 0.72rem;
+    color: rgba(44,32,23,0.38);
+    text-align: center;
+    margin-top: 1.1rem;
+    line-height: 1.6;
+  }
+
+  /* CHAT */
+  #screen-chat {
+    flex-direction: column;
+    height: 100vh;
+    background: linear-gradient(180deg, var(--wheat) 0%, rgba(233,215,192,0.6) 100%);
+  }
+  .chat-header {
+    display: flex; align-items: center; gap: 0.9rem;
+    padding: 0.9rem 1.25rem;
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(155,125,97,0.1);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .h-avatar {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(155,125,97,0.25);
+  }
+  .h-info { flex: 1; min-width: 0; }
+  .h-name { font-family: 'Aboreto', cursive; font-size: 0.95rem; color: var(--milky); letter-spacing: 0.04em; }
+  .h-type { font-size: 0.7rem; color: rgba(44,32,23,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h-menu-btn {
+    background: none; border: none; cursor: pointer;
+    color: rgba(44,32,23,0.35); font-size: 1.1rem; padding: 0.25rem;
+    transition: color 0.2s;
+  }
+  .h-menu-btn:hover { color: var(--milky); }
+
+  #profile-panel {
+    display: none;
+    background: rgba(255,255,255,0.95);
+    border-bottom: 1px solid rgba(155,125,97,0.12);
+    padding: 1rem 1.25rem;
+    animation: fadeDown 0.25s ease;
+  }
+  .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .profile-item { background: var(--wheat); border-radius: 10px; padding: 0.6rem 0.75rem; text-align: center; }
+  .profile-item .pi-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(44,32,23,0.4); margin-bottom: 0.2rem; }
+  .profile-item .pi-value { font-size: 0.82rem; font-weight: 400; color: var(--dark); }
+  .edit-link { display: block; text-align: center; font-size: 0.72rem; color: var(--milky); margin-top: 0.75rem; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(155,125,97,0.3); }
+
+  .msgs {
+    flex: 1; overflow-y: auto; padding: 1.25rem;
+    display: flex; flex-direction: column; gap: 0.875rem; scroll-behavior: smooth;
+  }
+  .msgs::-webkit-scrollbar { width: 3px; }
+  .msgs::-webkit-scrollbar-thumb { background: rgba(155,125,97,0.2); border-radius: 2px; }
+  .msg { display: flex; gap: 0.65rem; animation: fadeUp 0.28s ease both; max-width: 86%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.serena { align-self: flex-start; }
+  .m-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; margin-top: 3px; }
+  .msg.serena .m-avatar { background: linear-gradient(135deg, var(--milky), var(--peach)); }
+  .msg.user .m-avatar { background: var(--eucalyptus); color: white; font-size: 0.75rem; font-weight: 400; }
+  .m-bubble { padding: 0.8rem 1.05rem; border-radius: 18px; font-size: 0.875rem; line-height: 1.68; }
+  .msg.serena .m-bubble { background: white; color: var(--dark); border-bottom-left-radius: 4px; box-shadow: 0 2px 14px rgba(44,32,23,0.05); }
+  .msg.user .m-bubble { background: linear-gradient(135deg, var(--milky) 0%, #7a6249 100%); color: white; border-bottom-right-radius: 4px; }
+
+  .typing-wrap { display: flex; gap: 0.65rem; align-self: flex-start; animation: fadeUp 0.28s ease both; }
+  .typing-bubble { display: flex; align-items: center; gap: 4px; padding: 0.8rem 1.05rem; background: white; border-radius: 18px; border-bottom-left-radius: 4px; box-shadow: 0 2px 14px rgba(44,32,23,0.05); }
+  .dot { width: 6px; height: 6px; background: var(--peach); border-radius: 50%; animation: bounce 1.2s ease infinite; }
+  .dot:nth-child(2) { animation-delay: 0.18s; }
+  .dot:nth-child(3) { animation-delay: 0.36s; }
+
+  .chips-wrap { padding: 0.5rem 1.25rem; display: flex; gap: 0.45rem; overflow-x: auto; scroll-behavior: smooth; }
+  .chips-wrap::-webkit-scrollbar { display: none; }
+  .chip {
+    white-space: nowrap; padding: 0.45rem 0.95rem;
+    background: rgba(255,255,255,0.8); border: 1.5px solid rgba(155,125,97,0.18);
+    border-radius: 20px; font-size: 0.75rem; color: var(--milky);
+    cursor: pointer; transition: all 0.2s; font-family: 'Work Sans', sans-serif; font-weight: 300;
+  }
+  .chip:hover { background: var(--milky); color: white; border-color: var(--milky); }
+
+  .input-bar { padding: 0.75rem 1.25rem 1.25rem; background: rgba(255,255,255,0.65); backdrop-filter: blur(12px); border-top: 1px solid rgba(155,125,97,0.08); }
+  .input-wrap {
+    display: flex; gap: 0.65rem; align-items: flex-end;
+    background: white; border-radius: 16px;
+    padding: 0.45rem 0.45rem 0.45rem 1rem;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    transition: border-color 0.22s;
+    box-shadow: 0 2px 14px rgba(44,32,23,0.04);
+  }
+  .input-wrap:focus-within { border-color: var(--milky); }
+  #msg-input {
+    flex: 1; border: none; outline: none;
+    font-family: 'Work Sans', sans-serif; font-weight: 300; font-size: 0.875rem;
+    color: var(--dark); background: transparent;
+    resize: none; min-height: 22px; max-height: 110px; line-height: 1.55; padding: 0.2rem 0;
+  }
+  #msg-input::placeholder { color: rgba(44,32,23,0.3); }
+  .send {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    border: none; border-radius: 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .send:hover { transform: scale(1.06); }
+  .send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .send svg { width: 15px; height: 15px; fill: white; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes orbPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(155,125,97,0.3); } 50% { transform: scale(1.06); box-shadow: 0 0 0 18px rgba(155,125,97,0); } }
+  @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+  @media (max-width: 420px) {
+    .card { padding: 2rem 1.4rem; border-radius: 20px; }
+    .card h2 { font-size: 1.35rem; }
+    .row-2 { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="screen-loading" class="screen active">
+  <div class="orb"></div>
+  <p class="loading-label" id="loading-label">Iniciando...</p>
+  <p class="loading-sub" id="loading-sub"></p>
+</div>
+
+<div id="screen-onboarding" class="screen">
+  <div class="logo-wrap">
+    <svg class="triangle-logo" viewBox="0 0 36 36" fill="none"><path d="M18 33L3 7h30z" stroke="#9B7D61" stroke-width="1.4" fill="none"/></svg>
+    <div class="brand-tag">Vida Autoral</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">✦</div>
+    <h2>Bem-vinda, eu sou Serena</h2>
+    <p class="subtitle">Sua guia de autoconhecimento baseada no seu Desenho Humano. Com seus dados de nascimento, vou acessar seu mapa energético completo.</p>
+    <div id="error-banner" class="error-banner"></div>
+    <div class="field">
+      <label>Como prefere ser chamada?</label>
+      <input type="text" id="f-name" placeholder="Seu nome" autocomplete="given-name">
+    </div>
+    <div class="row-2">
+      <div class="field">
+        <label>Data de nascimento</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Hora de nascimento</label>
+        <input type="time" id="f-time" value="12:00">
+      </div>
+    </div>
+    <div class="field city-wrap">
+      <label>Cidade de nascimento</label>
+      <input type="text" id="f-city" placeholder="Digite o nome da cidade..." autocomplete="off" oninput="searchCity(this.value)">
+      <div class="city-suggestions" id="city-suggestions"></div>
+      <input type="hidden" id="f-timezone" value="">
+    </div>
+    <div class="field">
+      <label>Algo que Serena deva saber sobre você? (opcional)</label>
+      <textarea id="f-context" placeholder="Ex: estou passando por uma transição de carreira, quero entender meus relacionamentos..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="btn-start" onclick="startSession()">Revelar meu mapa ✦</button>
+    <p class="note">Seus dados ficam salvos no seu dispositivo e são usados apenas para gerar seu mapa de Desenho Humano.</p>
+  </div>
+</div>
+
+<div id="screen-chat" class="screen">
+  <div class="chat-header">
+    <div class="h-avatar">✦</div>
+    <div class="h-info">
+      <div class="h-name">Serena</div>
+      <div class="h-type" id="h-type-label">Guia de Autoconhecimento</div>
+    </div>
+    <button class="h-menu-btn" onclick="toggleProfile()" title="Ver seu perfil">⊙</button>
+  </div>
+  <div id="profile-panel">
+    <div class="profile-grid" id="profile-grid"></div>
+    <span class="edit-link" onclick="editProfile()">Recalcular meu mapa →</span>
+  </div>
+  <div class="msgs" id="msgs"></div>
+  <div class="chips-wrap" id="chips"></div>
+  <div class="input-bar">
+    <div class="input-wrap">
+      <textarea id="msg-input" placeholder="Pergunte algo para a Serena..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send" onclick="sendMsg()" id="send-btn">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BG_API = 'https://api.bodygraphchart.com';
+const BG_KEY = 'cea5ef7e-c3c9-4289-a29a-7d983d643989';
+const STORAGE_KEY = 'serena_user_v3';
+
+let user = {};
+let hdData = null;
+let history = [];
+let busy = false;
+let selectedTimezone = '';
+let citySearchTimeout = null;
+
+// ─── TRANSLATIONS ────────────────────────────────────────
+const TR = {
+  types: { 'Generator': 'Geradora', 'Manifesting Generator': 'Geradora Manifestadora', 'Projector': 'Projetora', 'Manifestor': 'Manifestadora', 'Reflector': 'Refletora' },
+  authority: { 'Sacral': 'Sacral', 'Emotional - Solar Plexus': 'Emocional', 'Emotional': 'Emocional', 'Splenic': 'Esplênico', 'Ego Manifested': 'Ego Manifestado', 'Ego Projected': 'Ego Projetado', 'Self Projected': 'Self-Projetado', 'Self-Projected': 'Self-Projetado', 'Mental': 'Mental', 'None (Lunar)': 'Lunar', 'Lunar': 'Lunar', 'Sounding Board': 'Mental', 'No Authority': 'Lunar' },
+  strategy: { 'To Respond': 'Responder', 'To Respond & Inform': 'Responder e Informar', 'Wait for the Invitation': 'Aguardar o Convite', 'To Inform': 'Informar', 'Wait a Lunar Cycle': 'Aguardar o Ciclo Lunar' },
+  signature: { 'Satisfaction': 'Satisfação', 'Peace': 'Paz', 'Success': 'Sucesso', 'Surprise': 'Surpresa' },
+  notself: { 'Frustration': 'Frustração', 'Anger': 'Raiva', 'Bitterness': 'Amargura', 'Disappointment': 'Decepção' },
+  definition: { 'Single Definition': 'Definição Única', 'Split Definition': 'Definição Dividida', 'Triple Split Definition': 'Tripla Divisão', 'Quadruple Split Definition': 'Quádrupla Divisão', 'No Definition': 'Sem Definição' },
+  centers: { 'head center': 'Cabeça', 'ajna center': 'Ajna', 'throat center': 'Garganta', 'g center': 'G (Identidade)', 'heart center': 'Coração (Ego)', 'solar plexus center': 'Plexo Solar', 'sacral center': 'Sacral', 'splenic center': 'Esplênico', 'root center': 'Raiz' },
+  typeEmoji: { 'Geradora': '⚡', 'Geradora Manifestadora': '🔥', 'Projetora': '🔭', 'Manifestadora': '🌪️', 'Refletora': '🌕' }
+};
+
+const HD_KNOWLEDGE = {
+  'Geradora': { estrategia: 'Responder — espere algo do mundo te convocar, então ouça seu ventre', naoEu: 'Frustração (sinal de que está agindo sem resposta genuína)', tema: 'Satisfação', energia: 'Energia vital sustentável e consistente. Feita para o trabalho que ama.', decisoes: 'Seu corpo sabe antes da mente. O "hm-hm" (sim) e "hun-uh" (não) visceral é sua bússola.', dinheiro: 'Prosperidade vem do trabalho que te satisfaz genuinamente.', relacoes: 'Atrai pessoas pela sua energia viva. Precisa aprender a dizer não quando o corpo não responde.', perguntas: ['Por que me sinto frustrada no trabalho?', 'Como saber se é uma boa oportunidade?', 'Como usar minha energia sem me esgotar?', 'O que meu corpo está me dizendo?'] },
+  'Geradora Manifestadora': { estrategia: 'Responder e então informar — ouça o ventre, aja rápido, comunique', naoEu: 'Frustração e Raiva', tema: 'Paz', energia: 'Energia multidimensional — pode começar E sustentar múltiplos projetos.', decisoes: 'Responda com o ventre, depois aja sem hesitar. Mas avise as pessoas ao redor.', dinheiro: 'Você prospera em múltiplas fontes simultâneas. Mas precisa terminar o que começa.', relacoes: 'Sua intensidade pode assustar. Comunicar suas intenções transforma resistência em apoio.', perguntas: ['Como gerenciar vários projetos de uma vez?', 'Por que as pessoas resistem às minhas ideias?', 'Como saber quando desistir vs. persistir?', 'Como lidar com minha impaciência?'] },
+  'Projetora': { estrategia: 'Aguardar o convite — para grandes movimentos da vida', naoEu: 'Amargura (sinal de que se ofereceu sem ser convidada)', tema: 'Sucesso', energia: 'Energia não-sustentável — precisa de descanso regular.', decisoes: 'O convite certo muda tudo. Espere ser reconhecida.', dinheiro: 'Sua abundância vem de ser reconhecida pelo que sabe, não pelo quanto trabalha.', relacoes: 'Tem dom para ver os outros profundamente. Mas precisa ser convidada.', perguntas: ['Como aguardar o convite sem me sentir passiva?', 'Por que fico exausta trabalhando igual a todo mundo?', 'Como ser reconhecida pelo meu valor?', 'Como saber se é o convite certo?'] },
+  'Manifestadora': { estrategia: 'Informar antes de agir — não pedir permissão, mas comunicar', naoEu: 'Raiva', tema: 'Paz', energia: 'Energia de impacto — campo fechado que pode intimidar sem querer.', decisoes: 'Você pode agir sem esperar. Mas informar reduz a resistência.', dinheiro: 'Você não foi feita para trabalhar para os outros. Prosperidade vem de criar em seus termos.', relacoes: 'Seu campo poderoso precisa ser consciente. Informar decisões é ato de amor.', perguntas: ['Por que sempre encontro tanta resistência?', 'Como informar sem sentir que estou pedindo permissão?', 'Como encontrar paz sendo tão intensa?', 'Como criar no meu próprio ritmo?'] },
+  'Refletora': { estrategia: 'Aguardar 28 dias (um ciclo lunar) para decisões importantes', naoEu: 'Decepção', tema: 'Surpresa e Deleite', energia: 'Energia completamente aberta — espelho do ambiente.', decisoes: 'Nunca decida no calor do momento. Espere o ciclo lunar completo.', dinheiro: 'Seu ambiente financeiro importa mais do que para qualquer outro tipo.', relacoes: 'Você absorve as energias ao redor. Precisa de tempo a sós.', perguntas: ['Como saber o que é meu vs. o que absorvi dos outros?', 'Por que meu humor muda tanto?', 'Como tomar decisões sem me apressar?', 'Como criar um ambiente que me nutre?'] }
+};
+
+const HD_PERFIS = {
+  '1 / 3': 'Investigadora/Mártir — busca segurança pelo conhecimento, aprende pela experiência',
+  '1 / 4': 'Investigadora/Oportunista — base sólida, prospera por rede de relacionamentos',
+  '2 / 4': 'Eremita/Oportunista — talento natural que precisa de convite',
+  '2 / 5': 'Eremita/Herética — talento natural com projeções, liderança transformadora',
+  '3 / 5': 'Mártir/Herética — aprende fazendo e errando, vista como salvadora',
+  '3 / 6': 'Mártir/Modelo de Papel — vida em 3 fases, após 40 torna-se guia',
+  '4 / 6': 'Oportunista/Modelo de Papel — influência pela rede, após 50 vira referência',
+  '4 / 1': 'Oportunista/Investigadora — segurança das relações e conhecimento',
+  '5 / 1': 'Herética/Investigadora — projeções dos outros, precisa de base sólida',
+  '5 / 2': 'Herética/Eremita — projeções dos outros, talento que emerge quando chamada',
+  '6 / 2': 'Modelo de Papel/Eremita — vida em 3 fases, talento natural',
+  '6 / 3': 'Modelo de Papel/Mártir — experimenta para se tornar exemplo'
+};
+
+// ─── INIT ─────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.name && parsed.hdData) {
+        user = parsed;
+        hdData = parsed.hdData;
+        showLoading('Bem-vinda de volta, ' + user.name.split(' ')[0] + '...', '', 1800, initChat);
+        return;
+      }
+    } catch(e) {}
+  }
+  showLoading('Iniciando...', '', 1000, () => showScreen('screen-onboarding'));
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.city-wrap')) {
+    document.getElementById('city-suggestions').classList.remove('open');
+  }
+});
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function showLoading(label, sub, duration, callback) {
+  document.getElementById('loading-label').textContent = label;
+  document.getElementById('loading-sub').textContent = sub || '';
+  showScreen('screen-loading');
+  setTimeout(callback, duration);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function hideError() {
+  document.getElementById('error-banner').classList.remove('visible');
+}
+
+// ─── CITY AUTOCOMPLETE ───────────────────────────────────
+function searchCity(query) {
+  clearTimeout(citySearchTimeout);
+  const suggestions = document.getElementById('city-suggestions');
+  if (query.length < 3) { suggestions.classList.remove('open'); return; }
+
+  citySearchTimeout = setTimeout(async () => {
+    try {
+      const res = await fetch(`${BG_API}/v210502/locations?api_key=${BG_KEY}&query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        suggestions.innerHTML = '<div class="city-option" style="color:rgba(44,32,23,0.4);cursor:default">Nenhuma cidade encontrada</div>';
+        suggestions.classList.add('open');
+        return;
+      }
+      suggestions.innerHTML = data.slice(0, 8).map(loc => {
+        const safeValue = loc.value.replace(/'/g, "\\'");
+        return `<div class="city-option" onclick="selectCity('${safeValue}', '${loc.timezone}')">
+          <div>${loc.asciiname}</div>
+          <div class="co-region">${loc.admin1 ? loc.admin1 + ', ' : ''}${loc.country}</div>
+        </div>`;
+      }).join('');
+      suggestions.classList.add('open');
+    } catch(e) { console.error('City search error:', e); }
+  }, 350);
+}
+
+function selectCity(value, timezone) {
+  document.getElementById('f-city').value = value;
+  document.getElementById('f-timezone').value = timezone;
+  selectedTimezone = timezone;
+  document.getElementById('city-suggestions').classList.remove('open');
+}
+
+// ─── START SESSION ────────────────────────────────────────
+async function startSession() {
+  hideError();
+  const name = document.getElementById('f-name').value.trim();
+  const date = document.getElementById('f-date').value;
+  const time = document.getElementById('f-time').value || '12:00';
+  const city = document.getElementById('f-city').value.trim();
+  const timezone = document.getElementById('f-timezone').value;
+
+  if (!name) { showError('Como posso te chamar? Preencha seu nome.'); return; }
+  if (!date) { showError('Preciso da sua data de nascimento para acessar seu mapa.'); return; }
+  if (!city || !timezone) { showError('Selecione sua cidade de nascimento na lista para que eu identifique o fuso horário correto.'); return; }
+
+  const btn = document.getElementById('btn-start');
+  btn.disabled = true;
+  btn.textContent = 'Consultando os astros...';
+
+  user.name = name;
+  user.birthDate = date;
+  user.birthTime = time;
+  user.birthCity = city;
+  user.timezone = timezone;
+  user.context = document.getElementById('f-context')?.value?.trim() || '';
+  user.firstTime = !localStorage.getItem(STORAGE_KEY);
+
+  showLoading('Lendo seu mapa...', 'Consultando as posições planetárias do momento do seu nascimento', 0, () => {});
+
+  try {
+    const datetime = `${date} ${time}`;
+    const url = `${BG_API}/v221006/hd-data?api_key=${BG_KEY}&date=${encodeURIComponent(datetime)}&timezone=${encodeURIComponent(timezone)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    hdData = await res.json();
+    if (!hdData || !hdData.Properties) throw new Error('Dados inválidos');
+
+    const props = hdData.Properties;
+    user.type = TR.types[props.Type?.id] || props.Type?.id || 'Desconhecido';
+    user.authority = TR.authority[props.InnerAuthority?.id] || props.InnerAuthority?.id || 'Desconhecida';
+    user.strategy = TR.strategy[props.Strategy?.id] || props.Strategy?.id || '';
+    user.profile = props.Profile?.id || '';
+    user.definition = TR.definition[props.Definition?.id] || props.Definition?.id || '';
+    user.signature = TR.signature[props.Signature?.id] || props.Signature?.id || '';
+    user.notSelf = TR.notself[props.NotSelfTheme?.id] || props.NotSelfTheme?.id || '';
+    user.incarnationCross = props.IncarnationCross?.id || '';
+    user.channels = (hdData.Channels || []).join(', ');
+    user.definedCenters = (hdData.DefinedCenters || []).map(c => TR.centers[c] || c).join(', ');
+    user.openCenters = (hdData.OpenCenters || []).map(c => TR.centers[c] || c).join(', ');
+    user.hdData = hdData;
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    history = [];
+
+    document.getElementById('loading-label').textContent = `${TR.typeEmoji[user.type] || '✦'} ${user.type}`;
+    document.getElementById('loading-sub').textContent = `Perfil ${user.profile} · ${user.authority}`;
+    setTimeout(() => initChat(), 2000);
+
+  } catch(e) {
+    console.error('HD API Error:', e);
+    btn.disabled = false;
+    btn.textContent = 'Revelar meu mapa ✦';
+    showScreen('screen-onboarding');
+    showError('Não consegui acessar seu mapa agora. Verifique se selecionou a cidade da lista e tente novamente.');
+  }
+}
+
+// ─── CHAT ─────────────────────────────────────────────────
+async function initChat() {
+  showScreen('screen-chat');
+  updateHeader();
+  buildProfilePanel();
+  await getWelcome();
+}
+
+function updateHeader() {
+  const emoji = TR.typeEmoji[user.type] || '✦';
+  document.getElementById('h-type-label').textContent = `${emoji} ${user.type} · ${user.authority}`;
+}
+
+function buildProfilePanel() {
+  const grid = document.getElementById('profile-grid');
+  grid.innerHTML = `
+    <div class="profile-item"><div class="pi-label">Tipo</div><div class="pi-value">${user.type || '—'}</div></div>
+    <div class="profile-item"><div class="pi-label">Autoridade</div><div class="pi-value">${user.authority || '—'}</div></div>
+    <div class="profile-item"><div class="pi-label">Perfil</div><div class="pi-value">${user.profile || '—'}</div></div>
+    <div class="profile-item"><div class="pi-label">Definição</div><div class="pi-value" style="font-size:0.72rem">${user.definition || '—'}</div></div>
+    <div class="profile-item"><div class="pi-label">Assinatura</div><div class="pi-value">${user.signature || '—'}</div></div>
+    <div class="profile-item"><div class="pi-label">Não-Eu</div><div class="pi-value">${user.notSelf || '—'}</div></div>
+    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Cruz de Encarnação</div><div class="pi-value" style="font-size:0.72rem">${user.incarnationCross || '—'}</div></div>
+    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Canais</div><div class="pi-value" style="font-size:0.72rem">${user.channels || '—'}</div></div>
+    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Centros Definidos</div><div class="pi-value" style="font-size:0.72rem">${user.definedCenters || '—'}</div></div>
+    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Centros Abertos</div><div class="pi-value" style="font-size:0.72rem">${user.openCenters || '—'}</div></div>`;
+}
+
+function toggleProfile() {
+  const panel = document.getElementById('profile-panel');
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
+
+function editProfile() {
+  localStorage.removeItem(STORAGE_KEY);
+  user = {}; hdData = null; history = [];
+  showScreen('screen-onboarding');
+}
+
+async function getWelcome() {
+  const firstName = user.name.split(' ')[0];
+  const isReturn = !user.firstTime;
+  const prompt = isReturn
+    ? `${firstName} voltou para conversar. Faça uma saudação calorosa de retorno, lembrando que ela é ${user.type}. Seja breve e pergunte o que está no coração dela hoje.`
+    : `Faça uma primeira mensagem de boas-vindas para ${firstName}, que é ${user.type} com autoridade ${user.authority} e perfil ${user.profile}.
+    Compartilhe UMA revelação específica e surpreendente sobre a combinação única do tipo + perfil dela.
+    Mencione brevemente a Cruz de Encarnação dela (${user.incarnationCross}) de forma acessível.
+    ${user.context ? `Contexto que ela compartilhou: "${user.context}"` : ''}
+    Termine perguntando qual área da vida ela quer explorar hoje. Tom: acolhedor, poético, direto.`;
+
+  showTyping();
+  const resp = await callClaude(prompt, true);
+  hideTyping();
+  addMsg('serena', resp);
+  history.push({ role: 'assistant', content: resp });
+  showChips();
+  user.firstTime = false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+}
+
+// ─── MESSAGING ────────────────────────────────────────────
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 110) + 'px'; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+
+async function sendMsg() {
+  const inp = document.getElementById('msg-input');
+  const text = inp.value.trim();
+  if (!text || busy) return;
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('chips').innerHTML = '';
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+  const resp = await callClaude(text, false);
+  hideTyping();
+  addMsg('serena', resp);
+  history.push({ role: 'assistant', content: resp });
+  document.getElementById('send-btn').disabled = false;
+  if (history.length % 6 === 0) showChips();
+}
+
+function addMsg(role, text) {
+  const container = document.getElementById('msgs');
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  const av = document.createElement('div');
+  av.className = 'm-avatar';
+  av.textContent = role === 'serena' ? '✦' : (user.name?.[0]?.toUpperCase() || '?');
+  const bub = document.createElement('div');
+  bub.className = 'm-bubble';
+  bub.innerHTML = text.replace(/\n/g, '<br>');
+  wrap.appendChild(av); wrap.appendChild(bub);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  busy = true;
+  const container = document.getElementById('msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'typing-wrap'; wrap.id = 'typing';
+  const av = document.createElement('div');
+  av.className = 'm-avatar';
+  av.style.cssText = 'width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#9B7D61,#DAA38F);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;margin-top:3px;';
+  av.textContent = '✦';
+  const bub = document.createElement('div');
+  bub.className = 'typing-bubble';
+  bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  wrap.appendChild(av); wrap.appendChild(bub);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() { busy = false; const t = document.getElementById('typing'); if (t) t.remove(); }
+
+function showChips() {
+  const container = document.getElementById('chips');
+  container.innerHTML = '';
+  const tipo = HD_KNOWLEDGE[user.type];
+  const qs = tipo ? tipo.perguntas : ['Como tomar decisões melhores?', 'Como entender meu tipo?', 'Qual é minha relação com dinheiro?', 'Como usar minha energia?'];
+  qs.forEach(q => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = q;
+    chip.onclick = () => { document.getElementById('msg-input').value = q; sendMsg(); };
+    container.appendChild(chip);
+  });
+}
+
+// ─── CLAUDE API ───────────────────────────────────────────
+function buildSystem() {
+  const tipo = HD_KNOWLEDGE[user.type] || {};
+  const perfilDesc = user.profile && HD_PERFIS[user.profile] ? `\nPerfil ${user.profile}: ${HD_PERFIS[user.profile]}` : '';
+
+  return `Você é Serena, uma guia de autoconhecimento profunda e amorosa da Vida Autoral — comunidade para mulheres que querem viver seu pleno potencial.
+
+Você usa o Desenho Humano como linguagem principal para ajudar ${user.name.split(' ')[0]} a se compreender e tomar decisões alinhadas em QUALQUER área da vida: propósito, relacionamentos, carreira, dinheiro, saúde, criatividade.
+
+══ MAPA COMPLETO DE ${user.name.toUpperCase().split(' ')[0]} ══
+• Tipo: ${user.type}
+• Autoridade Interna: ${user.authority}
+• Perfil: ${user.profile}${perfilDesc}
+• Definição: ${user.definition}
+• Assinatura (quando alinhada): ${user.signature}
+• Não-Eu (quando desalinhada): ${user.notSelf}
+• Cruz de Encarnação: ${user.incarnationCross}
+• Canais Definidos: ${user.channels}
+• Centros Definidos: ${user.definedCenters}
+• Centros Abertos: ${user.openCenters}
+• Data de nascimento: ${user.birthDate} às ${user.birthTime}
+• Local de nascimento: ${user.birthCity}
+${user.context ? `• Contexto pessoal: "${user.context}"` : ''}
+
+══ CONHECIMENTO DO TIPO ══
+• Estratégia: ${tipo.estrategia || user.strategy || ''}
+• Não-eu: ${tipo.naoEu || ''}
+• Tema de vida: ${tipo.tema || ''}
+• Energia: ${tipo.energia || ''}
+• Tomada de decisão: ${tipo.decisoes || ''}
+• Relação com dinheiro: ${tipo.dinheiro || ''}
+• Relacionamentos: ${tipo.relacoes || ''}
+
+══ COMO USAR OS CENTROS ABERTOS ══
+Os centros abertos (${user.openCenters}) são áreas onde ela ABSORVE e AMPLIFICA a energia dos outros.
+NÃO são fraquezas — são janelas de sabedoria quando desapegadas.
+
+══ COMO USAR OS CANAIS ══
+Os canais definidos (${user.channels}) representam talentos e dons fixos — forças consistentes.
+
+══ SEU TOM ══
+• Acolhedora, sábia, direta — como uma mentora
+• Usa o primeiro nome (${user.name.split(' ')[0]}) com carinho
+• SEMPRE personaliza para o tipo, perfil, canais e centros específicos dela
+• Usa analogias poéticas quando ajuda a clarear
+• Quando percebe resistência emocional, acolhe antes de orientar
+
+══ O QUE VOCÊ NÃO FAZ ══
+• Não substitui terapia ou análise formal de DH
+• Não dá respostas definitivas — você ilumina, ela decide
+• Não repete informações do mapa de forma mecânica
+
+Responda em português brasileiro. Parágrafos curtos. Máximo 220 palavras.`;
+}
+
+async function callClaude(userMsg, isWelcome) {
+  try {
+    let messages;
+    if (isWelcome) {
+      messages = [{ role: 'user', content: userMsg }];
+    } else {
+      messages = history.length > 1 ? history.slice(-(Math.min(history.length, 20))) : [{ role: 'user', content: userMsg }];
+    }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: buildSystem(), messages })
+    });
+    const data = await res.json();
+    if (data.content?.[0]?.text) return data.content[0].text;
+    return 'Hmm, algo não fluiu bem agora. Tente novamente em instantes.';
+  } catch(e) {
+    console.error(e);
+    return 'Não consegui me conectar agora. Verifique sua conexão e tente novamente.';
+  }
+}
+</script>
+</body>
+</html>
