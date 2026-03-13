@@ -261,11 +261,23 @@
   .h-name { font-family: 'Aboreto', cursive; font-size: 0.95rem; color: var(--milky); letter-spacing: 0.04em; }
   .h-type { font-size: 0.7rem; color: rgba(44,32,23,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .h-menu-btn {
-    background: none; border: none; cursor: pointer;
-    color: rgba(44,32,23,0.35); font-size: 1.1rem; padding: 0.25rem;
-    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(155,125,97,0.08);
+    border: 1px solid rgba(155,125,97,0.15);
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--milky);
+    font-size: 0.68rem;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 400;
+    padding: 0.4rem 0.65rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
   }
-  .h-menu-btn:hover { color: var(--milky); }
+  .h-menu-btn:hover { background: rgba(155,125,97,0.14); border-color: var(--milky); }
 
   #profile-panel {
     display: none;
@@ -583,18 +595,31 @@
 
   /* Tracker */
   .tracker-btn {
-    background: none; border: none; cursor: pointer;
-    color: rgba(44,32,23,0.35); font-size: 1rem; padding: 0.25rem;
-    transition: color 0.2s; position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(146,173,164,0.1);
+    border: 1px solid rgba(146,173,164,0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--eucalyptus);
+    font-size: 0.68rem;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 400;
+    padding: 0.4rem 0.65rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+    position: relative;
   }
-  .tracker-btn:hover { color: var(--milky); }
+  .tracker-btn:hover { background: rgba(146,173,164,0.18); border-color: var(--eucalyptus); }
   .tracker-badge {
-    position: absolute; top: -2px; right: -4px;
     background: var(--eucalyptus); color: white;
     font-size: 0.55rem; font-weight: 400;
-    width: 16px; height: 16px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
     font-family: 'Work Sans', sans-serif;
+    padding: 0 3px;
   }
 
   #tracker-panel {
@@ -725,10 +750,9 @@
       <div class="h-name">Serena</div>
       <div class="h-type" id="h-type-label">Guia de Autoconhecimento</div>
     </div>
-    <button class="h-menu-btn" onclick="toggleProfile()" title="Ver seu perfil">⊙</button>
-    <button class="tracker-btn" onclick="toggleTracker()" title="Sua jornada">
-      ◐
-      <span class="tracker-badge" id="tracker-badge">0</span>
+    <button class="h-menu-btn" onclick="toggleProfile()">Meu mapa ▾</button>
+    <button class="tracker-btn" onclick="toggleTracker()">
+      Jornada <span class="tracker-badge" id="tracker-badge">0</span>
     </button>
   </div>
   <div id="profile-panel">
