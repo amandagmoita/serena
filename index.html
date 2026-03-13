@@ -581,6 +581,88 @@
   }
   .btn-copy-text:hover { border-color: var(--milky); }
 
+  /* Tracker */
+  .tracker-btn {
+    background: none; border: none; cursor: pointer;
+    color: rgba(44,32,23,0.35); font-size: 1rem; padding: 0.25rem;
+    transition: color 0.2s; position: relative;
+  }
+  .tracker-btn:hover { color: var(--milky); }
+  .tracker-badge {
+    position: absolute; top: -2px; right: -4px;
+    background: var(--eucalyptus); color: white;
+    font-size: 0.55rem; font-weight: 400;
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  #tracker-panel {
+    display: none;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 1px solid rgba(155,125,97,0.12);
+    padding: 1.25rem;
+    animation: fadeDown 0.25s ease;
+  }
+  .tracker-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--milky);
+    margin-bottom: 0.85rem;
+    text-align: center;
+  }
+  .tracker-progress-bar {
+    height: 6px;
+    background: rgba(155,125,97,0.1);
+    border-radius: 3px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .tracker-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--milky), var(--eucalyptus));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+  .tracker-pct {
+    font-size: 0.68rem;
+    color: rgba(44,32,23,0.4);
+    text-align: center;
+    margin-bottom: 0.85rem;
+  }
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .tracker-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: rgba(44,32,23,0.45);
+    background: rgba(155,125,97,0.04);
+    border: 1px solid rgba(155,125,97,0.08);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .tracker-item.explored {
+    color: var(--dark);
+    background: rgba(146,173,164,0.12);
+    border-color: rgba(146,173,164,0.25);
+    font-weight: 400;
+  }
+  .tracker-item .ti-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    opacity: 0.4;
+  }
+  .tracker-item.explored .ti-icon { opacity: 1; }
+
   @media (max-width: 420px) {
     .card { padding: 2rem 1.4rem; border-radius: 20px; }
     .card h2 { font-size: 1.35rem; }
@@ -644,10 +726,20 @@
       <div class="h-type" id="h-type-label">Guia de Autoconhecimento</div>
     </div>
     <button class="h-menu-btn" onclick="toggleProfile()" title="Ver seu perfil">⊙</button>
+    <button class="tracker-btn" onclick="toggleTracker()" title="Sua jornada">
+      ◐
+      <span class="tracker-badge" id="tracker-badge">0</span>
+    </button>
   </div>
   <div id="profile-panel">
     <div class="profile-grid" id="profile-grid"></div>
     <span class="edit-link" onclick="editProfile()">Recalcular meu mapa →</span>
+  </div>
+  <div id="tracker-panel">
+    <div class="tracker-title">Sua jornada de autoconhecimento</div>
+    <div class="tracker-progress-bar"><div class="tracker-progress-fill" id="tracker-fill" style="width:0%"></div></div>
+    <div class="tracker-pct" id="tracker-pct">0 de 10 temas explorados</div>
+    <div class="tracker-grid" id="tracker-grid"></div>
   </div>
   <div class="msgs" id="msgs"></div>
   <div class="chips-wrap" id="chips"></div>
@@ -963,6 +1055,7 @@ async function initChat() {
   showScreen('screen-chat');
   updateHeader();
   buildProfilePanel();
+  updateTrackerUI();
   await getWelcome();
 }
 
@@ -988,6 +1081,8 @@ function buildProfilePanel() {
 
 function toggleProfile() {
   const panel = document.getElementById('profile-panel');
+  const trackerPanel = document.getElementById('tracker-panel');
+  trackerPanel.style.display = 'none';
   panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 }
 
@@ -1129,6 +1224,9 @@ async function sendMsg() {
   addMsg('serena', message);
   history.push({ role: 'assistant', content: message });
   document.getElementById('send-btn').disabled = false;
+
+  // Track topics explored
+  detectTopics(text + ' ' + message);
 
   // Show contextual option buttons
   if (options.length > 0) {
@@ -1592,6 +1690,125 @@ async function shareToInstagram() {
     }
   }
 }
+// ─── TRACKER DE PROGRESSO ─────────────────────────────────
+const TRACKER_KEY = 'serena_tracker_v1';
+
+const TRACKER_TOPICS = [
+  { id: 'tipo', icon: '⚡', label: 'Meu tipo', keywords: ['geradora', 'projetora', 'manifestadora', 'refletora', 'tipo áurico', 'meu tipo', 'energia vital'] },
+  { id: 'estrategia', icon: '🧭', label: 'Estratégia', keywords: ['estratégia', 'responder', 'informar', 'convite', 'aguardar', 'ciclo lunar'] },
+  { id: 'autoridade', icon: '🎯', label: 'Autoridade', keywords: ['autoridade', 'sacral', 'emocional', 'esplênic', 'decisão', 'decidir', 'corpo diz'] },
+  { id: 'perfil', icon: '🎭', label: 'Perfil', keywords: ['perfil', 'linha 1', 'linha 2', 'linha 3', 'linha 4', 'linha 5', 'linha 6', 'investigador', 'eremita', 'experimentador', 'conector', 'heretic', 'modelo'] },
+  { id: 'carreira', icon: '💼', label: 'Carreira', keywords: ['carreira', 'trabalho', 'profissão', 'propósito', 'vocação', 'negócio', 'empreend'] },
+  { id: 'dinheiro', icon: '💰', label: 'Dinheiro', keywords: ['dinheiro', 'abundância', 'prosper', 'financ', 'renda', 'cobrar', 'valor'] },
+  { id: 'relacoes', icon: '❤️', label: 'Relacionamentos', keywords: ['relacionamento', 'amor', 'parceiro', 'namoro', 'casamento', 'família', 'amizade'] },
+  { id: 'energia', icon: '🔋', label: 'Energia', keywords: ['energia', 'cansaço', 'exaust', 'esgota', 'frustração', 'frustra', 'burnout', 'descans'] },
+  { id: 'centros', icon: '🔮', label: 'Centros', keywords: ['centro', 'definido', 'aberto', 'amplifica', 'absorve', 'condicionamento'] },
+  { id: 'canais', icon: '✨', label: 'Canais e dons', keywords: ['canal', 'portão', 'porta', 'dom', 'talento', 'sol consciente', 'vênus', 'cruz de encarnação'] }
+];
+
+function loadTracker() {
+  try {
+    return JSON.parse(localStorage.getItem(TRACKER_KEY)) || {};
+  } catch { return {}; }
+}
+
+function saveTracker(data) {
+  localStorage.setItem(TRACKER_KEY, JSON.stringify(data));
+}
+
+function detectTopics(text) {
+  const lower = text.toLowerCase();
+  const tracker = loadTracker();
+  let changed = false;
+
+  TRACKER_TOPICS.forEach(topic => {
+    if (!tracker[topic.id]) {
+      const found = topic.keywords.some(kw => lower.includes(kw));
+      if (found) {
+        tracker[topic.id] = Date.now();
+        changed = true;
+      }
+    }
+  });
+
+  if (changed) {
+    saveTracker(tracker);
+    updateTrackerUI();
+  }
+}
+
+function updateTrackerUI() {
+  const tracker = loadTracker();
+  const explored = Object.keys(tracker).length;
+  const total = TRACKER_TOPICS.length;
+  const pct = Math.round((explored / total) * 100);
+
+  // Badge
+  const badge = document.getElementById('tracker-badge');
+  if (badge) badge.textContent = explored;
+
+  // Progress bar
+  const fill = document.getElementById('tracker-fill');
+  if (fill) fill.style.width = pct + '%';
+
+  // Percentage text
+  const pctEl = document.getElementById('tracker-pct');
+  if (pctEl) pctEl.textContent = `${explored} de ${total} temas explorados · ${pct}%`;
+
+  // Grid
+  const grid = document.getElementById('tracker-grid');
+  if (grid) {
+    grid.innerHTML = TRACKER_TOPICS.map(topic => {
+      const isExplored = !!tracker[topic.id];
+      return `<div class="tracker-item ${isExplored ? 'explored' : ''}" onclick="exploreTrackerTopic('${topic.id}')">
+        <span class="ti-icon">${isExplored ? '✓' : topic.icon}</span>
+        <span>${topic.label}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function exploreTrackerTopic(topicId) {
+  const topic = TRACKER_TOPICS.find(t => t.id === topicId);
+  if (!topic) return;
+
+  const tracker = loadTracker();
+  const isExplored = !!tracker[topicId];
+
+  // Close tracker panel
+  document.getElementById('tracker-panel').style.display = 'none';
+
+  // Send a message to explore this topic
+  const prompts = {
+    tipo: 'Me explica mais sobre o meu tipo e como viver alinhada com ele',
+    estrategia: 'Como funciona minha estratégia na prática do dia a dia?',
+    autoridade: 'Como usar minha autoridade para tomar melhores decisões?',
+    perfil: 'O que meu perfil diz sobre como eu aprendo e me posiciono no mundo?',
+    carreira: 'Carreira e propósito — estou no caminho certo?',
+    dinheiro: 'Dinheiro e abundância — como prosperar sendo quem sou?',
+    relacoes: 'Como meu design afeta meus relacionamentos?',
+    energia: 'Por que me sinto esgotada e como gerenciar melhor minha energia?',
+    centros: 'Quero entender meus centros abertos e definidos — onde absorvo energia dos outros?',
+    canais: 'Quais são meus dons e talentos únicos segundo meus canais?'
+  };
+
+  const msg = isExplored
+    ? `Quero aprofundar mais em ${topic.label.toLowerCase()} — o que ainda não exploramos?`
+    : (prompts[topicId] || `Me conta sobre ${topic.label.toLowerCase()}`);
+
+  document.getElementById('msg-input').value = msg;
+  sendMsg();
+}
+
+function toggleTracker() {
+  const panel = document.getElementById('tracker-panel');
+  const profilePanel = document.getElementById('profile-panel');
+  // Close profile if open
+  profilePanel.style.display = 'none';
+  panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  updateTrackerUI();
+}
+
 // ─── PWA SERVICE WORKER ───────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
