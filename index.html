@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#9B7D61">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Serena">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>Serena — Vida Autoral</title>
 <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Work+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
@@ -1585,6 +1591,10 @@ async function shareToInstagram() {
       alert('Não foi possível compartilhar. A imagem foi salva no dispositivo.');
     }
   }
+}
+// ─── PWA SERVICE WORKER ───────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 </script>
