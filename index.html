@@ -675,11 +675,21 @@
     transition: all 0.3s;
     cursor: pointer;
   }
+  .tracker-item.in-progress {
+    color: var(--milky);
+    background: rgba(155,125,97,0.06);
+    border-color: rgba(155,125,97,0.15);
+    border-style: dashed;
+  }
   .tracker-item.explored {
     color: var(--dark);
     background: rgba(146,173,164,0.12);
     border-color: rgba(146,173,164,0.25);
     font-weight: 400;
+  }
+  .tracker-item.deep {
+    background: rgba(146,173,164,0.2);
+    border-color: rgba(146,173,164,0.35);
   }
   .tracker-item .ti-icon {
     font-size: 0.9rem;
@@ -706,7 +716,7 @@
 
 <div id="screen-onboarding" class="screen">
   <div class="logo-wrap">
-    <img class="logo-img" src="/icon-192.png" alt="Vida Autoral">
+    <img class="logo-img" src="/logo-transparent.png" alt="Vida Autoral">
     <div class="brand-tag">Vida Autoral</div>
   </div>
   <div class="card">
@@ -1718,16 +1728,18 @@ async function shareToInstagram() {
 const TRACKER_KEY = 'serena_tracker_v1';
 
 const TRACKER_TOPICS = [
-  { id: 'tipo', icon: '⚡', label: 'Meu tipo', keywords: ['geradora', 'projetora', 'manifestadora', 'refletora', 'tipo áurico', 'meu tipo', 'energia vital'] },
-  { id: 'estrategia', icon: '🧭', label: 'Estratégia', keywords: ['estratégia', 'responder', 'informar', 'convite', 'aguardar', 'ciclo lunar'] },
-  { id: 'autoridade', icon: '🎯', label: 'Autoridade', keywords: ['autoridade', 'sacral', 'emocional', 'esplênic', 'decisão', 'decidir', 'corpo diz'] },
-  { id: 'perfil', icon: '🎭', label: 'Perfil', keywords: ['perfil', 'linha 1', 'linha 2', 'linha 3', 'linha 4', 'linha 5', 'linha 6', 'investigador', 'eremita', 'experimentador', 'conector', 'heretic', 'modelo'] },
-  { id: 'carreira', icon: '💼', label: 'Carreira', keywords: ['carreira', 'trabalho', 'profissão', 'propósito', 'vocação', 'negócio', 'empreend'] },
-  { id: 'dinheiro', icon: '💰', label: 'Dinheiro', keywords: ['dinheiro', 'abundância', 'prosper', 'financ', 'renda', 'cobrar', 'valor'] },
-  { id: 'relacoes', icon: '❤️', label: 'Relacionamentos', keywords: ['relacionamento', 'amor', 'parceiro', 'namoro', 'casamento', 'família', 'amizade'] },
-  { id: 'energia', icon: '🔋', label: 'Energia', keywords: ['energia', 'cansaço', 'exaust', 'esgota', 'frustração', 'frustra', 'burnout', 'descans'] },
-  { id: 'centros', icon: '🔮', label: 'Centros', keywords: ['centro', 'definido', 'aberto', 'amplifica', 'absorve', 'condicionamento'] },
-  { id: 'canais', icon: '✨', label: 'Canais e dons', keywords: ['canal', 'portão', 'porta', 'dom', 'talento', 'sol consciente', 'vênus', 'cruz de encarnação'] }
+  { id: 'tipo', icon: '⚡', label: 'Meu tipo', keywords: ['meu tipo', 'tipo áurico', 'o que é ser geradora', 'o que é ser projetora', 'o que é ser manifestadora', 'o que é ser refletora'] },
+  { id: 'estrategia', icon: '🧭', label: 'Estratégia', keywords: ['minha estratégia', 'estratégia na prática', 'responder ao que', 'aguardar convite', 'informar antes'] },
+  { id: 'autoridade', icon: '🎯', label: 'Autoridade', keywords: ['minha autoridade', 'autoridade sacral', 'autoridade emocional', 'como decidir', 'tomar decisão', 'autoridade interna'] },
+  { id: 'perfil', icon: '🎭', label: 'Perfil e linhas', keywords: ['meu perfil', 'linha 1', 'linha 2', 'linha 3', 'linha 4', 'linha 5', 'linha 6', 'investigador', 'eremita', 'experimentador'] },
+  { id: 'centros', icon: '🔮', label: 'Centros', keywords: ['centro aberto', 'centro definido', 'centros abertos', 'centros definidos', 'absorvo energia', 'amplifico', 'condicionamento'] },
+  { id: 'canais', icon: '✨', label: 'Canais e dons', keywords: ['meus canais', 'meus dons', 'meus talentos', 'canal definido', 'portão', 'porta de energia'] },
+  { id: 'sol_venus', icon: '☀️', label: 'Sol e Vênus', keywords: ['sol consciente', 'meu sol', 'minha vênus', 'cliente de alma', 'magnetismo', 'posicionamento'] },
+  { id: 'cruz', icon: '✝️', label: 'Cruz de encarnação', keywords: ['cruz de encarnação', 'minha cruz', 'propósito de vida', 'encarnação'] },
+  { id: 'carreira', icon: '💼', label: 'Carreira', keywords: ['carreira', 'trabalho ideal', 'negócio alinhado', 'vocação', 'propósito profissional'] },
+  { id: 'dinheiro', icon: '💰', label: 'Dinheiro', keywords: ['dinheiro', 'abundância', 'prosperidade', 'cobrar', 'monetizar', 'renda'] },
+  { id: 'relacoes', icon: '❤️', label: 'Relacionamentos', keywords: ['relacionamento', 'amor', 'parceiro', 'parceira', 'namoro', 'casamento'] },
+  { id: 'energia', icon: '🔋', label: 'Energia e descanso', keywords: ['minha energia', 'esgotada', 'exausta', 'burnout', 'descanso', 'frustração no trabalho'] }
 ];
 
 function loadTracker() {
@@ -1746,13 +1758,27 @@ function detectTopics(text) {
   let changed = false;
 
   TRACKER_TOPICS.forEach(topic => {
+    // Count how many keywords match in this message
+    const matches = topic.keywords.filter(kw => lower.includes(kw)).length;
+    if (matches === 0) return;
+
+    // Need at least 1 keyword match to count as a "touch"
     if (!tracker[topic.id]) {
-      const found = topic.keywords.some(kw => lower.includes(kw));
-      if (found) {
-        tracker[topic.id] = Date.now();
-        changed = true;
-      }
+      tracker[topic.id] = { touches: 0, depth: 0, first: Date.now(), last: Date.now() };
     }
+
+    tracker[topic.id].touches += 1;
+    tracker[topic.id].last = Date.now();
+    
+    // Depth increases based on conversation length about this topic
+    // Need 2+ touches to be considered "explored"
+    if (tracker[topic.id].touches >= 2) {
+      tracker[topic.id].depth = 1; // explored
+    }
+    if (tracker[topic.id].touches >= 4) {
+      tracker[topic.id].depth = 2; // deep
+    }
+    changed = true;
   });
 
   if (changed) {
@@ -1763,11 +1789,16 @@ function detectTopics(text) {
 
 function updateTrackerUI() {
   const tracker = loadTracker();
-  const explored = Object.keys(tracker).length;
   const total = TRACKER_TOPICS.length;
+  
+  // Count topics with depth >= 1 (explored = 2+ touches)
+  const explored = TRACKER_TOPICS.filter(t => tracker[t.id]?.depth >= 1).length;
+  // Count topics with any touch (in progress)
+  const touched = TRACKER_TOPICS.filter(t => tracker[t.id]?.touches >= 1).length;
+  
   const pct = Math.round((explored / total) * 100);
 
-  // Badge
+  // Badge shows explored count
   const badge = document.getElementById('tracker-badge');
   if (badge) badge.textContent = explored;
 
@@ -1775,7 +1806,7 @@ function updateTrackerUI() {
   const fill = document.getElementById('tracker-fill');
   if (fill) fill.style.width = pct + '%';
 
-  // Percentage text
+  // Text
   const pctEl = document.getElementById('tracker-pct');
   if (pctEl) pctEl.textContent = `${explored} de ${total} temas explorados · ${pct}%`;
 
@@ -1783,9 +1814,28 @@ function updateTrackerUI() {
   const grid = document.getElementById('tracker-grid');
   if (grid) {
     grid.innerHTML = TRACKER_TOPICS.map(topic => {
-      const isExplored = !!tracker[topic.id];
-      return `<div class="tracker-item ${isExplored ? 'explored' : ''}" onclick="exploreTrackerTopic('${topic.id}')">
-        <span class="ti-icon">${isExplored ? '✓' : topic.icon}</span>
+      const data = tracker[topic.id];
+      let status = '';
+      let statusClass = '';
+      let icon = topic.icon;
+      
+      if (!data || data.touches === 0) {
+        status = '';
+        statusClass = '';
+      } else if (data.depth === 0) {
+        status = '·';
+        statusClass = 'in-progress';
+        icon = '○';
+      } else if (data.depth === 1) {
+        statusClass = 'explored';
+        icon = '✓';
+      } else {
+        statusClass = 'explored deep';
+        icon = '✦';
+      }
+      
+      return `<div class="tracker-item ${statusClass}" onclick="exploreTrackerTopic('${topic.id}')">
+        <span class="ti-icon">${icon}</span>
         <span>${topic.label}</span>
       </div>`;
     }).join('');
@@ -1797,28 +1847,34 @@ function exploreTrackerTopic(topicId) {
   if (!topic) return;
 
   const tracker = loadTracker();
-  const isExplored = !!tracker[topicId];
+  const data = tracker[topicId];
+  const depth = data?.depth || 0;
 
-  // Close tracker panel
   document.getElementById('tracker-panel').style.display = 'none';
 
-  // Send a message to explore this topic
   const prompts = {
     tipo: 'Me explica mais sobre o meu tipo e como viver alinhada com ele',
     estrategia: 'Como funciona minha estratégia na prática do dia a dia?',
-    autoridade: 'Como usar minha autoridade para tomar melhores decisões?',
+    autoridade: 'Como usar minha autoridade interna para tomar melhores decisões?',
     perfil: 'O que meu perfil diz sobre como eu aprendo e me posiciono no mundo?',
-    carreira: 'Carreira e propósito — estou no caminho certo?',
+    centros: 'Quero entender meus centros abertos e definidos — onde absorvo energia dos outros?',
+    canais: 'Quais são meus dons e talentos únicos segundo meus canais definidos?',
+    sol_venus: 'Me conta sobre meu Sol consciente e minha Vênus — como atraio meu cliente de alma?',
+    cruz: 'O que minha Cruz de Encarnação diz sobre meu propósito de vida?',
+    carreira: 'Carreira e propósito — estou no caminho certo segundo meu design?',
     dinheiro: 'Dinheiro e abundância — como prosperar sendo quem sou?',
     relacoes: 'Como meu design afeta meus relacionamentos?',
-    energia: 'Por que me sinto esgotada e como gerenciar melhor minha energia?',
-    centros: 'Quero entender meus centros abertos e definidos — onde absorvo energia dos outros?',
-    canais: 'Quais são meus dons e talentos únicos segundo meus canais?'
+    energia: 'Por que me sinto esgotada e como gerenciar melhor minha energia?'
   };
 
-  const msg = isExplored
-    ? `Quero aprofundar mais em ${topic.label.toLowerCase()} — o que ainda não exploramos?`
-    : (prompts[topicId] || `Me conta sobre ${topic.label.toLowerCase()}`);
+  let msg;
+  if (depth === 0) {
+    msg = prompts[topicId] || `Me conta sobre ${topic.label.toLowerCase()}`;
+  } else if (depth === 1) {
+    msg = `Quero aprofundar mais em ${topic.label.toLowerCase()} — tem algo que ainda não exploramos?`;
+  } else {
+    msg = `Vamos ainda mais fundo em ${topic.label.toLowerCase()} — quero exemplos práticos pro meu dia a dia`;
+  }
 
   document.getElementById('msg-input').value = msg;
   sendMsg();
