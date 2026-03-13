@@ -421,6 +421,160 @@
   }
   .option-btn .ob-text { flex: 1; }
 
+  /* Save Insight Button */
+  .save-insight-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    margin-top: 0.5rem;
+    background: none;
+    border: 1px solid rgba(155,125,97,0.15);
+    border-radius: 8px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.68rem;
+    color: rgba(155,125,97,0.6);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .save-insight-btn:hover {
+    color: var(--milky);
+    border-color: var(--milky);
+    background: rgba(155,125,97,0.04);
+  }
+
+  /* Card Modal Overlay */
+  .card-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(44,32,23,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: fadeUp 0.25s ease;
+  }
+  .card-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(44,32,23,0.25);
+  }
+  .card-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .card-modal-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--milky);
+  }
+  .card-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: rgba(44,32,23,0.3);
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .card-modal-close:hover { color: var(--dark); }
+
+  /* Card Preview (what gets exported) */
+  .card-preview {
+    background: linear-gradient(160deg, #E9D7C0, #FED8A6 55%, #DAA38F);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-preview::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(155,125,97,0.12) 0%, transparent 70%);
+    top: -80px; right: -80px;
+    pointer-events: none;
+  }
+  .card-preview-logo {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(155,125,97,0.6);
+    margin-bottom: 1.5rem;
+  }
+  .card-preview-text {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #2C2017;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .card-preview-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .card-preview-type {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(155,125,97,0.7);
+  }
+  .card-preview-symbol {
+    font-size: 1.8rem;
+    color: rgba(155,125,97,0.2);
+  }
+
+  /* Modal actions */
+  .card-modal-actions {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+  .card-modal-actions button {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: 10px;
+    font-family: 'Aboreto', cursive;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-save-img {
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white;
+    border: none;
+    box-shadow: 0 4px 14px rgba(155,125,97,0.25);
+  }
+  .btn-save-img:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(155,125,97,0.35); }
+  .btn-copy-text {
+    background: white;
+    color: var(--milky);
+    border: 1.5px solid rgba(155,125,97,0.2);
+  }
+  .btn-copy-text:hover { border-color: var(--milky); }
+
   @media (max-width: 420px) {
     .card { padding: 2rem 1.4rem; border-radius: 20px; }
     .card h2 { font-size: 1.35rem; }
@@ -845,12 +999,14 @@ async function getWelcome() {
   const container = document.getElementById('msgs');
 
   if (isReturn) {
-    // Returning user — just a short message from Claude
-    showTyping();
-    const resp = await callClaude(`${firstName} voltou para conversar. Faça uma saudação calorosa de retorno em 2-3 frases. Pergunte o que está no coração dela hoje.`, true);
-    hideTyping();
-    addMsg('serena', resp);
-    history.push({ role: 'assistant', content: resp });
+    // Returning user — simple time-based greeting, no AI needed
+    const hour = new Date().getHours();
+    let greeting = 'Bom dia';
+    if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+    else if (hour >= 18) greeting = 'Boa noite';
+    
+    addMsg('serena', `${greeting}, ${firstName}! Sobre o que você quer falar hoje?`);
+    history.push({ role: 'assistant', content: `${greeting}, ${firstName}! Sobre o que você quer falar hoje?` });
     showOptionButtons();
     return;
   }
@@ -1034,6 +1190,16 @@ function addMsg(role, text) {
   const bub = document.createElement('div');
   bub.className = 'm-bubble';
   bub.innerHTML = text.replace(/\n/g, '<br>');
+  
+  // Add save insight button for Serena messages
+  if (role === 'serena' && text.length > 60) {
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'save-insight-btn';
+    saveBtn.innerHTML = '✦ Salvar insight';
+    saveBtn.onclick = () => openInsightCard(text);
+    bub.appendChild(saveBtn);
+  }
+  
   wrap.appendChild(av); wrap.appendChild(bub);
   container.appendChild(wrap);
   container.scrollTop = container.scrollHeight;
@@ -1211,6 +1377,165 @@ async function callClaude(userMsg, isWelcome) {
     return 'Não consegui me conectar agora. Verifique sua conexão e tente novamente.';
   }
 }
+// ─── INSIGHT CARD ─────────────────────────────────────────
+function openInsightCard(fullText) {
+  // Extract the most impactful part (first ~280 chars or 3 sentences)
+  const sentences = fullText.split(/[.!?]+/).filter(s => s.trim().length > 10);
+  let insightText = '';
+  for (let s of sentences) {
+    if ((insightText + s).length > 280) break;
+    insightText += s.trim() + '. ';
+  }
+  insightText = insightText.trim() || fullText.substring(0, 280) + '...';
+  
+  // Remove any HTML tags
+  insightText = insightText.replace(/<[^>]*>/g, '');
+
+  const emoji = TR.typeEmoji[user.type] || '✦';
+  const firstName = user.name.split(' ')[0];
+
+  // Create modal
+  const overlay = document.createElement('div');
+  overlay.className = 'card-modal-overlay';
+  overlay.id = 'insight-modal';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  overlay.innerHTML = `
+    <div class="card-modal">
+      <div class="card-modal-header">
+        <span class="card-modal-title">Seu insight</span>
+        <button class="card-modal-close" onclick="document.getElementById('insight-modal').remove()">✕</button>
+      </div>
+      
+      <div class="card-preview" id="card-preview">
+        <div class="card-preview-logo">✦ VIDA AUTORAL</div>
+        <div class="card-preview-text">${insightText}</div>
+        <div class="card-preview-footer">
+          <div class="card-preview-type">${emoji} ${user.type} · ${user.profile}<br>${firstName}</div>
+          <div class="card-preview-symbol">✦</div>
+        </div>
+      </div>
+      
+      <div class="card-modal-actions">
+        <button class="btn-copy-text" onclick="copyInsightText()">Copiar texto</button>
+        <button class="btn-save-img" onclick="saveInsightImage()">Salvar imagem ↓</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+}
+
+function copyInsightText() {
+  const text = document.querySelector('.card-preview-text')?.textContent;
+  if (text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.btn-copy-text');
+      btn.textContent = 'Copiado ✓';
+      setTimeout(() => btn.textContent = 'Copiar texto', 2000);
+    });
+  }
+}
+
+async function saveInsightImage() {
+  const btn = document.querySelector('.btn-save-img');
+  btn.textContent = 'Gerando...';
+  btn.disabled = true;
+
+  try {
+    const canvas = document.createElement('canvas');
+    const W = 1080, H = 1920;
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, W * 0.4, H);
+    grad.addColorStop(0, '#E9D7C0');
+    grad.addColorStop(0.55, '#FED8A6');
+    grad.addColorStop(1, '#DAA38F');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Decorative circle
+    const radGrad = ctx.createRadialGradient(W * 0.8, H * 0.12, 0, W * 0.8, H * 0.12, 350);
+    radGrad.addColorStop(0, 'rgba(155,125,97,0.1)');
+    radGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = radGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Logo
+    ctx.fillStyle = 'rgba(155,125,97,0.55)';
+    ctx.font = '300 22px "Work Sans", sans-serif';
+    ctx.letterSpacing = '8px';
+    ctx.fillText('✦  VIDA AUTORAL', 100, 200);
+
+    // Main text
+    const insightText = document.querySelector('.card-preview-text')?.textContent || '';
+    ctx.fillStyle = '#2C2017';
+    ctx.font = '300 42px "Work Sans", sans-serif';
+    ctx.letterSpacing = '0px';
+    
+    // Word wrap
+    const maxWidth = W - 200;
+    const lineHeight = 68;
+    const words = insightText.split(' ');
+    let line = '';
+    let y = 500;
+    
+    for (let word of words) {
+      const testLine = line + word + ' ';
+      if (ctx.measureText(testLine).width > maxWidth && line) {
+        ctx.fillText(line.trim(), 100, y);
+        line = word + ' ';
+        y += lineHeight;
+        if (y > 1500) { // Don't overflow
+          ctx.fillText(line.trim() + '...', 100, y);
+          break;
+        }
+      } else {
+        line = testLine;
+      }
+    }
+    if (y <= 1500) ctx.fillText(line.trim(), 100, y);
+
+    // Footer - type badge
+    const emoji = TR.typeEmoji[user.type] || '✦';
+    const firstName = user.name.split(' ')[0];
+    
+    ctx.fillStyle = 'rgba(155,125,97,0.55)';
+    ctx.font = '300 28px "Work Sans", sans-serif';
+    ctx.letterSpacing = '3px';
+    ctx.fillText(`${emoji}  ${user.type}  ·  ${user.profile}`, 100, H - 220);
+    
+    ctx.fillStyle = 'rgba(155,125,97,0.4)';
+    ctx.font = '300 26px "Work Sans", sans-serif';
+    ctx.fillText(firstName, 100, H - 170);
+
+    // Large symbol
+    ctx.fillStyle = 'rgba(155,125,97,0.12)';
+    ctx.font = '200px "Work Sans", sans-serif';
+    ctx.fillText('✦', W - 280, H - 100);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = `serena-insight-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    btn.textContent = 'Salvo ✓';
+    setTimeout(() => {
+      btn.textContent = 'Salvar imagem ↓';
+      btn.disabled = false;
+    }, 2000);
+
+  } catch(e) {
+    console.error('Image generation error:', e);
+    btn.textContent = 'Salvar imagem ↓';
+    btn.disabled = false;
+    alert('Não foi possível gerar a imagem. Tente copiar o texto.');
+  }
+}
+
 </script>
 </body>
 </html>
