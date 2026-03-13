@@ -340,6 +340,87 @@
   @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
   @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
+  /* Map Summary Card */
+  .map-card {
+    background: white;
+    border-radius: 18px;
+    padding: 1.25rem;
+    margin: 0;
+    box-shadow: 0 2px 14px rgba(44,32,23,0.05);
+    max-width: 86%;
+    animation: fadeUp 0.4s ease both;
+  }
+  .map-card-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--milky);
+    margin-bottom: 0.85rem;
+    text-align: center;
+  }
+  .map-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .map-item {
+    background: linear-gradient(135deg, rgba(233,215,192,0.4), rgba(254,216,166,0.3));
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+  }
+  .map-item.full { grid-column: 1 / -1; }
+  .mi-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(44,32,23,0.4);
+    margin-bottom: 0.15rem;
+  }
+  .mi-value {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--dark);
+    line-height: 1.4;
+  }
+
+  /* Option Buttons */
+  .options-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    max-width: 86%;
+    animation: fadeUp 0.4s ease 0.1s both;
+    align-self: flex-start;
+    margin-left: 38px;
+  }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    background: white;
+    border: 1.5px solid rgba(155,125,97,0.15);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.22s;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.82rem;
+    color: var(--dark);
+    text-align: left;
+    line-height: 1.45;
+  }
+  .option-btn:hover {
+    border-color: var(--milky);
+    background: rgba(155,125,97,0.04);
+    transform: translateX(4px);
+  }
+  .option-btn .ob-emoji {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .option-btn .ob-text { flex: 1; }
+
   @media (max-width: 420px) {
     .card { padding: 2rem 1.4rem; border-radius: 20px; }
     .card h2 { font-size: 1.35rem; }
@@ -759,25 +840,105 @@ function editProfile() {
 async function getWelcome() {
   const firstName = user.name.split(' ')[0];
   const isReturn = !user.firstTime;
-  const prompt = isReturn
-    ? `${firstName} voltou para conversar. Faça uma saudação calorosa de retorno, lembrando que ela é ${user.type}. Seja breve e pergunte o que está no coração dela hoje.`
-    : `Faça uma primeira mensagem de boas-vindas para ${firstName}. 
-    Ela é ${user.type} com autoridade ${user.authority} e perfil ${user.profile}.
-    
-    INSTRUÇÕES: Seja breve e acolhedora. Diga que você leu o mapa dela e que tem muita coisa bonita ali.
-    Escolha UM único aspecto interessante do mapa dela (pode ser o tipo, o perfil, ou algo que chame atenção) e faça UMA observação com profundidade sobre ele — algo que faça ela pensar "uau, isso faz sentido".
-    ${user.context ? `Ela compartilhou: "${user.context}" — se possível, conecte o insight com esse contexto.` : ''}
-    
-    Termine perguntando o que ela quer explorar. Máximo 120 palavras. Não liste múltiplos aspectos do mapa.`;
+  const emoji = TR.typeEmoji[user.type] || '✦';
+  const tipo = HD_KNOWLEDGE[user.type] || {};
+  const container = document.getElementById('msgs');
 
+  if (isReturn) {
+    // Returning user — just a short message from Claude
+    showTyping();
+    const resp = await callClaude(`${firstName} voltou para conversar. Faça uma saudação calorosa de retorno em 2-3 frases. Pergunte o que está no coração dela hoje.`, true);
+    hideTyping();
+    addMsg('serena', resp);
+    history.push({ role: 'assistant', content: resp });
+    showOptionButtons();
+    return;
+  }
+
+  // ─── MAP SUMMARY CARD ───
+  const mapWrap = document.createElement('div');
+  mapWrap.className = 'msg serena';
+
+  const mapAv = document.createElement('div');
+  mapAv.className = 'm-avatar';
+  mapAv.textContent = '✦';
+
+  const mapCard = document.createElement('div');
+  mapCard.className = 'map-card';
+  mapCard.innerHTML = `
+    <div class="map-card-title">${emoji} Mapa de ${firstName}</div>
+    <div class="map-grid">
+      <div class="map-item"><div class="mi-label">Tipo</div><div class="mi-value">${emoji} ${user.type}</div></div>
+      <div class="map-item"><div class="mi-label">Estratégia</div><div class="mi-value">${user.strategy || tipo.estrategia?.split('—')[0]?.trim() || '—'}</div></div>
+      <div class="map-item"><div class="mi-label">Autoridade</div><div class="mi-value">${user.authority}</div></div>
+      <div class="map-item"><div class="mi-label">Perfil</div><div class="mi-value">${user.profile}</div></div>
+      <div class="map-item"><div class="mi-label">Assinatura ✨</div><div class="mi-value">${user.signature}</div></div>
+      <div class="map-item"><div class="mi-label">Não-Eu ⚠️</div><div class="mi-value">${user.notSelf}</div></div>
+      <div class="map-item full"><div class="mi-label">Cruz de Encarnação</div><div class="mi-value">${user.incarnationCross || '—'}</div></div>
+      <div class="map-item full"><div class="mi-label">Canais (seus dons)</div><div class="mi-value">${user.channels || '—'}</div></div>
+    </div>`;
+
+  mapWrap.appendChild(mapAv);
+  mapWrap.appendChild(mapCard);
+  container.appendChild(mapWrap);
+  container.scrollTop = container.scrollHeight;
+
+  // Small delay before Serena's message
+  await new Promise(r => setTimeout(r, 800));
+
+  // ─── SHORT WELCOME MESSAGE (from Claude) ───
   showTyping();
+  const prompt = `Dê boas-vindas a ${firstName}. Você acabou de mostrar o mapa dela (ela já viu tipo, estratégia, autoridade, perfil, assinatura, não-eu, canais e cruz).
+  
+  INSTRUÇÕES: Em no máximo 60 palavras, diga algo como "Seu mapa está aqui em cima, ${firstName}. Já dá pra ver que [UMA observação curta e específica sobre o tipo ou perfil dela]." 
+  Termine com: "O que você quer explorar primeiro?"
+  
+  Seja breve e direta. NÃO repita os dados do mapa. NÃO liste vários aspectos.`;
+
   const resp = await callClaude(prompt, true);
   hideTyping();
   addMsg('serena', resp);
   history.push({ role: 'assistant', content: resp });
-  showChips();
+
+  // ─── OPTION BUTTONS ───
+  showOptionButtons();
+
   user.firstTime = false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+}
+
+function showOptionButtons() {
+  const container = document.getElementById('msgs');
+  const optionsWrap = document.createElement('div');
+  optionsWrap.className = 'options-wrap';
+  optionsWrap.id = 'welcome-options';
+
+  const options = [
+    { emoji: '💼', text: 'Carreira e propósito — estou no caminho certo?' },
+    { emoji: '💰', text: 'Dinheiro e abundância — como prosperar sendo quem sou?' },
+    { emoji: '❤️', text: 'Relacionamentos — como me relaciono melhor?' },
+    { emoji: '⚡', text: 'Energia — por que me sinto esgotada ou frustrada?' },
+    { emoji: '🧭', text: 'Decisões — tenho uma decisão importante pra tomar' },
+    { emoji: '🌱', text: 'Quero entender meu mapa — me explica do zero' }
+  ];
+
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="ob-emoji">${opt.emoji}</span><span class="ob-text">${opt.text}</span>`;
+    btn.onclick = () => {
+      // Remove options
+      const el = document.getElementById('welcome-options');
+      if (el) el.remove();
+      // Send as message
+      document.getElementById('msg-input').value = opt.text;
+      sendMsg();
+    };
+    optionsWrap.appendChild(btn);
+  });
+
+  container.appendChild(optionsWrap);
+  container.scrollTop = container.scrollHeight;
 }
 
 // ─── MESSAGING ────────────────────────────────────────────
@@ -791,6 +952,9 @@ async function sendMsg() {
   inp.value = ''; inp.style.height = 'auto';
   document.getElementById('send-btn').disabled = true;
   document.getElementById('chips').innerHTML = '';
+  // Remove any option buttons
+  const opts = document.querySelectorAll('.options-wrap');
+  opts.forEach(o => o.remove());
   addMsg('user', text);
   history.push({ role: 'user', content: text });
   showTyping();
@@ -837,17 +1001,40 @@ function showTyping() {
 function hideTyping() { busy = false; const t = document.getElementById('typing'); if (t) t.remove(); }
 
 function showChips() {
-  const container = document.getElementById('chips');
-  container.innerHTML = '';
+  // Show follow-up options as buttons in the message area
+  const container = document.getElementById('msgs');
+  
+  // Remove any existing options
+  const existing = document.getElementById('followup-options');
+  if (existing) existing.remove();
+  
+  const optionsWrap = document.createElement('div');
+  optionsWrap.className = 'options-wrap';
+  optionsWrap.id = 'followup-options';
+
   const tipo = HD_KNOWLEDGE[user.type];
-  const qs = tipo ? tipo.perguntas : ['Como tomar decisões melhores?', 'Como entender meu tipo?', 'Qual é minha relação com dinheiro?', 'Como usar minha energia?'];
-  qs.forEach(q => {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.textContent = q;
-    chip.onclick = () => { document.getElementById('msg-input').value = q; sendMsg(); };
-    container.appendChild(chip);
+  const followUps = [
+    { emoji: '🔍', text: 'Quero aprofundar mais nesse tema' },
+    { emoji: '💼', text: 'Como isso se aplica na minha carreira?' },
+    { emoji: '❤️', text: 'E nos meus relacionamentos?' },
+    { emoji: '🔄', text: 'Quero explorar outro aspecto do meu mapa' }
+  ];
+
+  followUps.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="ob-emoji">${opt.emoji}</span><span class="ob-text">${opt.text}</span>`;
+    btn.onclick = () => {
+      const el = document.getElementById('followup-options');
+      if (el) el.remove();
+      document.getElementById('msg-input').value = opt.text;
+      sendMsg();
+    };
+    optionsWrap.appendChild(btn);
   });
+
+  container.appendChild(optionsWrap);
+  container.scrollTop = container.scrollHeight;
 }
 
 // ─── CLAUDE API ───────────────────────────────────────────
