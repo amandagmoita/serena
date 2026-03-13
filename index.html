@@ -1124,7 +1124,8 @@ function buildProfilePanel() {
     <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Cruz de Encarnação</div><div class="pi-value" style="font-size:0.72rem">${user.incarnationCross || '—'}</div></div>
     <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Canais</div><div class="pi-value" style="font-size:0.72rem">${user.channels || '—'}</div></div>
     <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Centros Definidos</div><div class="pi-value" style="font-size:0.72rem">${user.definedCenters || '—'}</div></div>
-    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Centros Abertos</div><div class="pi-value" style="font-size:0.72rem">${user.openCenters || '—'}</div></div>`;
+    <div class="profile-item" style="grid-column:1/-1"><div class="pi-label">Centros Abertos</div><div class="pi-value" style="font-size:0.72rem">${user.openCenters || '—'}</div></div>
+    <div class="profile-item" style="grid-column:1/-1;border-top:1px solid rgba(155,125,97,0.14);margin-top:0.15rem;padding-top:0.5rem"><div class="pi-label">📅 Nascimento</div><div class="pi-value" style="font-size:0.75rem;opacity:0.7">${user.birthDate || '—'} às ${user.birthTime || '—'} · ${user.birthCity || '—'}</div></div>`;
 }
 
 function toggleProfile() {
@@ -1181,6 +1182,7 @@ async function getWelcome() {
       <div class="map-item"><div class="mi-label">Não-Eu ⚠️</div><div class="mi-value">${user.notSelf}</div></div>
       <div class="map-item full"><div class="mi-label">Cruz de Encarnação</div><div class="mi-value">${user.incarnationCross || '—'}</div></div>
       <div class="map-item full"><div class="mi-label">Canais (seus dons)</div><div class="mi-value">${user.channels || '—'}</div></div>
+      <div class="map-item full" style="border-top:1px solid rgba(155,125,97,0.12);margin-top:0.25rem;padding-top:0.5rem"><div class="mi-label">📅 Nascimento</div><div class="mi-value" style="font-size:0.78rem;opacity:0.75">${user.birthDate || '—'} às ${user.birthTime || '—'} · ${user.birthCity || '—'}</div></div>
     </div>`;
 
   mapWrap.appendChild(mapAv);
