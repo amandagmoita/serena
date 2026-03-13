@@ -1,11 +1,7 @@
 {
-  "buildCommand": "",
-  "outputDirectory": ".",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "headers": { "Content-Type": "text/html; charset=utf-8" },
-      "dest": "/index.html"
+  "functions": {
+    "api/chat.js": {
+      "runtime": "@vercel/node@3.0.0"
     }
-  ]
+  }
 }
