@@ -85,7 +85,7 @@
   }
   .logo-wrap {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     animation: fadeUp 0.7s ease both;
   }
   .logo-img { width: 72px; height: 72px; margin: 0 auto 0.2rem; display: block; border-radius: 20px; }
@@ -1027,9 +1027,13 @@ async function startSession() {
   btn.textContent = 'Consultando os astros...';
 
   user.name = name;
-  user.birthDate = date;
+  // Format date to Brazilian dd/mm/yyyy
+  const [y, m, d] = date.split('-');
+  user.birthDate = `${d}/${m}/${y}`;
+  user.birthDateRaw = date; // keep ISO for API calls
   user.birthTime = time;
-  user.birthCity = city;
+  // Clean city: keep only city name (before first comma)
+  user.birthCity = city.split(',')[0].trim();
   user.timezone = timezone;
   user.context = document.getElementById('f-context')?.value?.trim() || '';
   user.firstTime = !localStorage.getItem(STORAGE_KEY);
