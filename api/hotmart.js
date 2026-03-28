@@ -1,10 +1,18 @@
 // ─── WEBHOOK HOTMART → SERENA ────────────────────────────
-// Recebe eventos da Hotmart e gerencia acesso dos assinantes
+// Dois produtos, duas regras:
+//   Vida Autoral (7169759) → 60 dias de acesso à Serena
+//   Serena Avulsa (7467966) → ativo enquanto assinatura paga
 // ──────────────────────────────────────────────────────────
 
 import { redisGet, redisSet } from './redis.js';
 
-const MAX_ACCESS_DAYS = 60;
+// ─── CONFIGURAÇÃO DOS PRODUTOS ───
+const PRODUCTS = {
+  '7169759': { name: 'Vida Autoral', accessDays: 60 },
+  '7467966': { name: 'Serena Assinatura', accessDays: null }, // null = sem prazo fixo, ativo enquanto pagar
+};
+
+const DEFAULT_ACCESS_DAYS = 60; // fallback se produto desconhecido
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +41,7 @@ export default async function handler(req, res) {
     ).toLowerCase().trim();
 
     const buyerName = payload.data?.buyer?.name || payload.data?.subscriber?.name || '';
-    const productId = payload.data?.product?.id || payload.prod || '';
+    const productId = String(payload.data?.product?.id || payload.prod || '');
     const subscriberCode = payload.data?.subscription?.subscriber?.code || payload.subscriber_code || '';
     const transactionId = payload.data?.purchase?.transaction || payload.transaction || '';
 
@@ -41,7 +49,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email não encontrado no payload' });
     }
 
-    console.log(`[Hotmart] ${event} | ${buyerEmail} | prod:${productId}`);
+    // ─── IDENTIFICAR PRODUTO ───
+    const product = PRODUCTS[productId] || { name: 'Desconhecido', accessDays: DEFAULT_ACCESS_DAYS };
+
+    console.log(`[Hotmart] ${event} | ${buyerEmail} | ${product.name} (${productId})`);
 
     // ─── PROCESSAR EVENTO ───
     const key = `subscriber:${buyerEmail}`;
@@ -50,14 +61,35 @@ export default async function handler(req, res) {
     switch (event) {
       case 'PURCHASE_APPROVED':
       case 'PURCHASE_COMPLETE': {
-        const expiresAt = now + (MAX_ACCESS_DAYS * 24 * 60 * 60 * 1000);
+        const existing = await redisGet(key);
+
+        // Calcular expiração baseada no produto
+        let expiresAt;
+        if (product.accessDays === null) {
+          // Assinatura recorrente — sem data fixa de expiração
+          expiresAt = null;
+        } else {
+          // Acesso por prazo fixo (Vida Autoral = 60 dias)
+          expiresAt = now + (product.accessDays * 24 * 60 * 60 * 1000);
+        }
+
+        // Se já tem acesso ativo de outro produto, manter o mais longo
+        if (existing && existing.status === 'active' && existing.expiresAt) {
+          if (expiresAt !== null && existing.expiresAt > expiresAt) {
+            expiresAt = existing.expiresAt; // manter o prazo mais longo
+          }
+        }
+
         await redisSet(key, {
           email: buyerEmail, name: buyerName, status: 'active',
-          productId, subscriberCode, transactionId,
+          productId, productName: product.name,
+          subscriberCode, transactionId,
           activatedAt: now, expiresAt,
           lastEvent: event, lastEventAt: now,
         });
-        console.log(`[✓] LIBERADO ${buyerEmail} até ${new Date(expiresAt).toISOString()}`);
+
+        const expiryMsg = expiresAt ? `até ${new Date(expiresAt).toISOString()}` : 'sem prazo (assinatura ativa)';
+        console.log(`[✓] LIBERADO ${buyerEmail} — ${product.name} — ${expiryMsg}`);
         break;
       }
 
@@ -71,7 +103,7 @@ export default async function handler(req, res) {
           status: 'canceled', canceledAt: now,
           lastEvent: event, lastEventAt: now,
         });
-        console.log(`[✗] REVOGADO ${buyerEmail} — ${event}`);
+        console.log(`[✗] REVOGADO ${buyerEmail} — ${product.name} — ${event}`);
         break;
       }
 
@@ -82,7 +114,7 @@ export default async function handler(req, res) {
           status: 'expired', expiredAt: now,
           lastEvent: event, lastEventAt: now,
         });
-        console.log(`[⏰] EXPIRADO ${buyerEmail}`);
+        console.log(`[⏰] EXPIRADO ${buyerEmail} — ${product.name}`);
         break;
       }
 
@@ -95,16 +127,15 @@ export default async function handler(req, res) {
             lastEvent: event, lastEventAt: now,
           });
         }
-        console.log(`[⚠] ATRASADO ${buyerEmail}`);
+        console.log(`[⚠] ATRASADO ${buyerEmail} — ${product.name}`);
         break;
       }
 
       case 'SWITCH_PLAN': {
         const existing = await redisGet(key);
-        const expiresAt = now + (MAX_ACCESS_DAYS * 24 * 60 * 60 * 1000);
         await redisSet(key, {
           ...(existing || {}), email: buyerEmail,
-          status: 'active', expiresAt,
+          status: 'active', expiresAt: null,
           lastEvent: event, lastEventAt: now,
         });
         console.log(`[↻] PLANO ATUALIZADO ${buyerEmail}`);
