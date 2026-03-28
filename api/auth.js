@@ -1,41 +1,25 @@
 // /api/auth.js — Vercel Serverless Function
 // Handles: register, verify-code, resend-code, login, forgot-password, check-session
-// Uses: Resend for email verification, KV/Redis for user storage
+// Uses: Resend for email verification, Upstash Redis for user storage
 //
 // Required ENV vars:
 //   RESEND_API_KEY — API key from resend.com
-//   KV_REST_API_URL — Vercel KV (or Upstash Redis) URL
-//   KV_REST_API_TOKEN — Vercel KV token
+//   UPSTASH_REDIS_REST_URL — Upstash Redis REST URL
+//   UPSTASH_REDIS_REST_TOKEN — Upstash Redis REST token
 //   AUTH_SECRET — Secret for signing session tokens (any random string)
+//
+// Install: npm install @upstash/redis resend
 
+import { Redis } from '@upstash/redis';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-// ─── KV HELPERS ──────────────────────────────────────────
-async function kvGet(key) {
-  const res = await fetch(`${process.env.KV_REST_API_URL}/get/${key}`, {
-    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
-  });
-  const data = await res.json();
-  if (data.result) return JSON.parse(data.result);
-  return null;
-}
-
-async function kvSet(key, value, exSeconds) {
-  const body = exSeconds
-    ? ['SET', key, JSON.stringify(value), 'EX', exSeconds]
-    : ['SET', key, JSON.stringify(value)];
-  await fetch(`${process.env.KV_REST_API_URL}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-}
 
 // ─── CRYPTO HELPERS ──────────────────────────────────────
 function hashPassword(password, salt) {
@@ -107,7 +91,7 @@ export default async function handler(req, res) {
         }
 
         // Check if already exists
-        const existing = await kvGet(`user:${email}`);
+        const existing = await redis.get(`user:${email}`);
         if (existing && existing.verified) {
           return res.json({ success: false, message: 'Esta conta já existe. Faça login.' });
         }
@@ -119,7 +103,7 @@ export default async function handler(req, res) {
         const verifyCode = generateCode();
 
         // Save user (unverified)
-        await kvSet(`user:${email}`, {
+        await redis.set(`user:${email}`, {
           email,
           passwordHash: hash,
           passwordSalt: salt,
@@ -128,7 +112,7 @@ export default async function handler(req, res) {
         });
 
         // Save code (expires in 15 min)
-        await kvSet(`code:${email}`, { code: verifyCode, type: 'verify' }, 900);
+        await redis.set(`code:${email}`, { code: verifyCode, type: 'verify' }, { ex: 900 });
 
         // Send email via Resend
         await sendVerificationEmail(email, verifyCode);
@@ -138,12 +122,12 @@ export default async function handler(req, res) {
 
       // ─── VERIFY CODE ───────────────────────────────
       case 'verify-code': {
-        const codeData = await kvGet(`code:${email}`);
+        const codeData = await redis.get(`code:${email}`);
         if (!codeData || codeData.code !== code) {
           return res.json({ success: false, message: 'Código inválido ou expirado. Solicite um novo.' });
         }
 
-        const userData = await kvGet(`user:${email}`);
+        const userData = await redis.get(`user:${email}`);
         if (!userData) {
           return res.json({ success: false, message: 'Conta não encontrada.' });
         }
@@ -153,16 +137,16 @@ export default async function handler(req, res) {
           // For simplicity: mark as verified and let them in 
           // (they can change password in settings later)
           userData.verified = true;
-          await kvSet(`user:${email}`, userData);
+          await redis.set(`user:${email}`, userData);
         } else {
           // Normal verification
           userData.verified = true;
-          await kvSet(`user:${email}`, userData);
+          await redis.set(`user:${email}`, userData);
         }
 
         // Generate session token
         const sessionToken = generateToken(email);
-        await kvSet(`session:${sessionToken}`, { email, createdAt: Date.now() }, 86400 * 60); // 60 days
+        await redis.set(`session:${sessionToken}`, { email, createdAt: Date.now() }, { ex: 86400 * 60 });
 
         // Calculate expiry (2 months from Hotmart purchase)
         // This comes from the verify-access API, but for now use 60 days
@@ -179,21 +163,21 @@ export default async function handler(req, res) {
       // ─── RESEND CODE ───────────────────────────────
       case 'resend-code': {
         const verifyCode2 = generateCode();
-        await kvSet(`code:${email}`, { code: verifyCode2, type: 'verify' }, 900);
+        await redis.set(`code:${email}`, { code: verifyCode2, type: 'verify' }, { ex: 900 });
         await sendVerificationEmail(email, verifyCode2);
         return res.json({ success: true });
       }
 
       // ─── LOGIN ─────────────────────────────────────
       case 'login': {
-        const user = await kvGet(`user:${email}`);
+        const user = await redis.get(`user:${email}`);
         if (!user) {
           return res.json({ success: false, message: 'Conta não encontrada. Registre-se primeiro.' });
         }
         if (!user.verified) {
           // Resend verification
           const newCode = generateCode();
-          await kvSet(`code:${email}`, { code: newCode, type: 'verify' }, 900);
+          await redis.set(`code:${email}`, { code: newCode, type: 'verify' }, { ex: 900 });
           await sendVerificationEmail(email, newCode);
           return res.json({ success: false, message: 'Email ainda não verificado. Reenviamos o código.' });
         }
@@ -204,7 +188,7 @@ export default async function handler(req, res) {
 
         // Generate session
         const loginToken = generateToken(email);
-        await kvSet(`session:${loginToken}`, { email, createdAt: Date.now() }, 86400 * 60);
+        await redis.set(`session:${loginToken}`, { email, createdAt: Date.now() }, { ex: 86400 * 60 });
 
         const loginExpiry = Date.now() + (60 * 24 * 60 * 60 * 1000);
 
@@ -219,13 +203,13 @@ export default async function handler(req, res) {
 
       // ─── FORGOT PASSWORD ──────────────────────────
       case 'forgot-password': {
-        const userData3 = await kvGet(`user:${email}`);
+        const userData3 = await redis.get(`user:${email}`);
         if (!userData3) {
           return res.json({ success: false, message: 'Conta não encontrada com este email.' });
         }
 
         const resetCode = generateCode();
-        await kvSet(`code:${email}`, { code: resetCode, type: 'reset' }, 900);
+        await redis.set(`code:${email}`, { code: resetCode, type: 'reset' }, { ex: 900 });
         await sendVerificationEmail(email, resetCode);
 
         return res.json({ success: true });
@@ -233,7 +217,7 @@ export default async function handler(req, res) {
 
       // ─── CHECK SESSION ────────────────────────────
       case 'check-session': {
-        const session = await kvGet(`session:${token}`);
+        const session = await redis.get(`session:${token}`);
         if (!session || session.email !== email) {
           return res.json({ valid: false });
         }
