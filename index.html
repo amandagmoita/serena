@@ -824,6 +824,217 @@
     display: none;
   }
   .auth-logout:hover { background: rgba(155,125,97,0.1); }
+
+  /* SIDEBAR */
+  .app-layout { display: flex; height: 100vh; height: 100dvh; }
+  .sidebar {
+    width: 280px; min-width: 280px;
+    background: rgba(44,32,23,0.04);
+    border-right: 1px solid rgba(155,125,97,0.1);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transition: margin-left 0.3s ease;
+  }
+  .sidebar.hidden { margin-left: -280px; min-width: 0; width: 0; }
+  .sidebar-header {
+    padding: 1rem 1rem 0.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(155,125,97,0.08);
+  }
+  .sidebar-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.85rem;
+    color: var(--milky);
+    letter-spacing: 0.08em;
+  }
+  .sidebar-new-btn {
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white; border: none; border-radius: 8px;
+    padding: 0.35rem 0.7rem; font-size: 0.7rem;
+    font-family: 'Work Sans', sans-serif; font-weight: 400;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .sidebar-new-btn:hover { transform: scale(1.04); }
+  .sidebar-list {
+    flex: 1; overflow-y: auto; padding: 0.5rem;
+  }
+  .sidebar-list::-webkit-scrollbar { width: 3px; }
+  .sidebar-list::-webkit-scrollbar-thumb { background: rgba(155,125,97,0.2); border-radius: 2px; }
+  .sidebar-item {
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 0.2rem;
+    position: relative;
+  }
+  .sidebar-item:hover { background: rgba(155,125,97,0.08); }
+  .sidebar-item.active { background: rgba(155,125,97,0.12); }
+  .sidebar-item-title {
+    font-size: 0.8rem; font-weight: 400;
+    color: var(--dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sidebar-item-date {
+    font-size: 0.65rem; color: rgba(44,32,23,0.35);
+    margin-top: 0.15rem;
+  }
+  .sidebar-item-delete {
+    position: absolute; top: 0.5rem; right: 0.5rem;
+    background: none; border: none; color: rgba(44,32,23,0.25);
+    cursor: pointer; font-size: 0.75rem; padding: 0.2rem;
+    display: none;
+  }
+  .sidebar-item:hover .sidebar-item-delete { display: block; }
+  .sidebar-item-delete:hover { color: var(--peach); }
+  .sidebar-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(155,125,97,0.08);
+    display: flex; gap: 0.5rem;
+  }
+  .sidebar-footer-btn {
+    flex: 1; padding: 0.45rem;
+    background: rgba(155,125,97,0.06);
+    border: 1px solid rgba(155,125,97,0.12);
+    border-radius: 8px; cursor: pointer;
+    font-size: 0.68rem; color: var(--milky);
+    font-family: 'Work Sans', sans-serif; font-weight: 400;
+    transition: all 0.15s; text-align: center;
+  }
+  .sidebar-footer-btn:hover { background: rgba(155,125,97,0.12); }
+  .sidebar-toggle {
+    position: fixed; top: 0.75rem; left: 0.75rem; z-index: 60;
+    background: rgba(255,255,255,0.8); border: 1px solid rgba(155,125,97,0.15);
+    border-radius: 8px; padding: 0.4rem 0.55rem;
+    cursor: pointer; font-size: 0.85rem; color: var(--milky);
+    display: none; line-height: 1;
+  }
+  .chat-area { flex: 1; min-width: 0; }
+
+  /* ADMIN PANEL */
+  #screen-admin {
+    min-height: 100vh;
+    flex-direction: column;
+    background: var(--wheat);
+  }
+  .admin-header {
+    padding: 1.25rem 1.5rem;
+    background: rgba(255,255,255,0.8);
+    border-bottom: 1px solid rgba(155,125,97,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-header h1 {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.1rem; color: var(--milky);
+    letter-spacing: 0.1em;
+  }
+  .admin-back {
+    background: none; border: 1px solid rgba(155,125,97,0.2);
+    border-radius: 8px; padding: 0.4rem 0.8rem;
+    font-size: 0.72rem; color: var(--milky);
+    cursor: pointer; font-family: 'Work Sans', sans-serif;
+  }
+  .admin-back:hover { background: rgba(155,125,97,0.06); }
+  .admin-body { padding: 1.5rem; max-width: 900px; margin: 0 auto; width: 100%; }
+  .admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+  }
+  .admin-stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(155,125,97,0.1);
+  }
+  .admin-stat-label {
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(44,32,23,0.4);
+    margin-bottom: 0.3rem;
+  }
+  .admin-stat-value {
+    font-size: 1.6rem; font-weight: 400; color: var(--dark);
+  }
+  .admin-section-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.8rem; color: var(--milky);
+    letter-spacing: 0.1em; margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .admin-table-wrap {
+    background: white; border-radius: 14px;
+    border: 1px solid rgba(155,125,97,0.1);
+    overflow-x: auto;
+  }
+  .admin-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .admin-table th {
+    text-align: left; padding: 0.7rem 1rem;
+    font-weight: 400; font-size: 0.65rem;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(44,32,23,0.4);
+    border-bottom: 1px solid rgba(155,125,97,0.1);
+  }
+  .admin-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(155,125,97,0.05);
+    color: var(--dark);
+  }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .status-badge {
+    display: inline-block; padding: 0.15rem 0.5rem;
+    border-radius: 6px; font-size: 0.68rem; font-weight: 400;
+  }
+  .status-badge.active { background: rgba(146,173,164,0.2); color: #3a7d6a; }
+  .status-badge.canceled { background: rgba(218,163,143,0.2); color: #a0522d; }
+  .status-badge.expired { background: rgba(44,32,23,0.08); color: rgba(44,32,23,0.5); }
+  .status-badge.past_due { background: rgba(254,216,166,0.3); color: #8b6914; }
+  .admin-action-bar {
+    display: flex; gap: 0.5rem; align-items: flex-end;
+    flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .admin-input {
+    padding: 0.55rem 0.8rem;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    border-radius: 10px; font-size: 0.82rem;
+    font-family: 'Work Sans', sans-serif; font-weight: 300;
+    background: white; outline: none; color: var(--dark);
+  }
+  .admin-input:focus { border-color: var(--milky); }
+  .admin-btn {
+    padding: 0.55rem 1rem;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white; border: none; border-radius: 10px;
+    font-size: 0.75rem; cursor: pointer;
+    font-family: 'Work Sans', sans-serif; font-weight: 400;
+    transition: all 0.2s;
+  }
+  .admin-btn:hover { transform: translateY(-1px); }
+  .admin-btn.secondary {
+    background: none; color: var(--milky);
+    border: 1px solid rgba(155,125,97,0.2);
+  }
+  .admin-msg {
+    padding: 0.6rem 1rem;
+    border-radius: 10px; font-size: 0.78rem;
+    margin-top: 0.75rem; display: none;
+  }
+  .admin-msg.visible { display: block; }
+  .admin-msg.success { background: rgba(146,173,164,0.15); color: #3a7d6a; }
+  .admin-msg.error { background: rgba(218,163,143,0.15); color: #a0522d; }
+  .admin-loading {
+    text-align: center; padding: 2rem;
+    color: rgba(44,32,23,0.4); font-size: 0.82rem;
+  }
+
+  @media (max-width: 700px) {
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+      background: var(--wheat); box-shadow: 4px 0 24px rgba(44,32,23,0.15); }
+    .sidebar.hidden { margin-left: -280px; }
+    .sidebar-toggle { display: block; }
+  }
 </style>
 </head>
 <body>
@@ -859,6 +1070,11 @@
       Ainda não tem acesso?
       <a href="https://pay.hotmart.com/R104334883O" target="_blank" style="color:var(--milky);text-decoration:underline;">
         Garanta sua assinatura →
+      </a>
+    </p>
+    <p class="note" style="margin-top:0.5rem">
+      <a href="#" onclick="showScreen('screen-admin-login');return false" style="color:rgba(44,32,23,0.25);text-decoration:none;font-size:0.65rem;">
+        Admin
       </a>
     </p>
   </div>
@@ -906,35 +1122,96 @@
 </div>
 
 <div id="screen-chat" class="screen">
-  <div class="chat-header">
-    <img class="h-avatar" src="/icon-192.png" alt="Serena" style="object-fit:cover;">
-    <div class="h-info">
-      <div class="h-name">Serena</div>
-      <div class="h-type" id="h-type-label">Guia de Autoconhecimento</div>
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+  <div class="app-layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Conversas</span>
+        <button class="sidebar-new-btn" onclick="startNewConversation()">+ Nova</button>
+      </div>
+      <div class="sidebar-list" id="sidebar-list"></div>
+      <div class="sidebar-footer">
+        <button class="sidebar-footer-btn" onclick="logoutAuth()">Sair</button>
+        <button class="sidebar-footer-btn" id="admin-panel-btn" style="display:none" onclick="openAdminPanel()">Admin</button>
+      </div>
     </div>
-    <button class="h-menu-btn" onclick="toggleProfile()">Meu mapa ▾</button>
-    <button class="tracker-btn" onclick="toggleTracker()">
-      Jornada <span class="tracker-badge" id="tracker-badge">0</span>
+    <div class="chat-area">
+      <div class="chat-header">
+        <img class="h-avatar" src="/icon-192.png" alt="Serena" style="object-fit:cover;">
+        <div class="h-info">
+          <div class="h-name">Serena</div>
+          <div class="h-type" id="h-type-label">Guia de Autoconhecimento</div>
+        </div>
+        <button class="h-menu-btn" onclick="toggleProfile()">Meu mapa ▾</button>
+        <button class="tracker-btn" onclick="toggleTracker()">
+          Jornada <span class="tracker-badge" id="tracker-badge">0</span>
+        </button>
+      </div>
+      <div id="profile-panel">
+        <div class="profile-grid" id="profile-grid"></div>
+        <span class="edit-link" onclick="editProfile()">Recalcular meu mapa →</span>
+      </div>
+      <div id="tracker-panel">
+        <div class="tracker-title">Sua jornada de autoconhecimento</div>
+        <div class="tracker-progress-bar"><div class="tracker-progress-fill" id="tracker-fill" style="width:0%"></div></div>
+        <div class="tracker-pct" id="tracker-pct">0 de 10 temas explorados</div>
+        <div class="tracker-grid" id="tracker-grid"></div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="chips-wrap" id="chips"></div>
+      <div class="input-bar">
+        <div class="input-wrap">
+          <textarea id="msg-input" placeholder="Pergunte algo para a Serena..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send" onclick="sendMsg()" id="send-btn">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-admin-login" class="screen">
+  <div class="logo-wrap">
+    <img class="logo-img" src="/logo-transparent.png" alt="Vida Autoral">
+    <div class="brand-tag">Admin</div>
+  </div>
+  <div class="auth-card">
+    <div class="card-icon">⚙</div>
+    <h2>Painel Admin</h2>
+    <p class="subtitle">Acesso restrito à administração da Serena.</p>
+    <div class="field">
+      <label>Email admin</label>
+      <input type="email" id="admin-email-input" placeholder="admin@email.com" autocomplete="email">
+    </div>
+    <div class="field" style="margin-top:0.75rem">
+      <label>Senha</label>
+      <input type="password" id="admin-password-input" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')loginAdmin()">
+    </div>
+    <button class="btn btn-primary" id="btn-admin-login" onclick="loginAdmin()" style="margin-top:1rem">
+      Entrar ✦
     </button>
+    <div id="admin-login-error" class="auth-error"></div>
+    <p class="note" style="margin-top:1.5rem">
+      <a href="#" onclick="showScreen('screen-auth');return false" style="color:var(--milky);text-decoration:underline;">
+        ← Voltar para login normal
+      </a>
+    </p>
   </div>
-  <div id="profile-panel">
-    <div class="profile-grid" id="profile-grid"></div>
-    <span class="edit-link" onclick="editProfile()">Recalcular meu mapa →</span>
+</div>
+
+<div id="screen-admin" class="screen">
+  <div class="admin-header">
+    <h1>✦ Painel Serena</h1>
+    <div style="display:flex;gap:0.5rem">
+      <button class="admin-back" onclick="adminRefresh()">Atualizar</button>
+      <button class="admin-back" onclick="closeAdminPanel()">← Voltar</button>
+    </div>
   </div>
-  <div id="tracker-panel">
-    <div class="tracker-title">Sua jornada de autoconhecimento</div>
-    <div class="tracker-progress-bar"><div class="tracker-progress-fill" id="tracker-fill" style="width:0%"></div></div>
-    <div class="tracker-pct" id="tracker-pct">0 de 10 temas explorados</div>
-    <div class="tracker-grid" id="tracker-grid"></div>
-  </div>
-  <div class="msgs" id="msgs"></div>
-  <div class="chips-wrap" id="chips"></div>
-  <div class="input-bar">
-    <div class="input-wrap">
-      <textarea id="msg-input" placeholder="Pergunte algo para a Serena..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send" onclick="sendMsg()" id="send-btn">
-        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
+  <div class="admin-body">
+    <div id="admin-content">
+      <div class="admin-loading">Carregando dados...</div>
     </div>
   </div>
 </div>
@@ -1079,8 +1356,302 @@ function logoutAuth() {
 }
 
 function showLogoutButton() {
-  document.getElementById('btn-logout').style.display = 'block';
+  const el = document.getElementById('btn-logout');
+  if (el) el.style.display = 'none'; // logout agora fica na sidebar
+  // Mostrar botão admin se for admin
+  const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  const adminBtn = document.getElementById('admin-panel-btn');
+  if (adminBtn && auth.isAdmin) adminBtn.style.display = 'block';
 }
+
+// ─── SIDEBAR DE CONVERSAS ────────────────────────────────
+let currentConversationId = null;
+let autoSaveTimeout = null;
+
+function generateConvoId() {
+  return 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+function getAuthEmail() {
+  try {
+    const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+    return auth.email || '';
+  } catch { return ''; }
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('hidden');
+}
+
+async function loadConversationList() {
+  const email = getAuthEmail();
+  if (!email) return;
+  try {
+    const res = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list', email })
+    });
+    const data = await res.json();
+    renderSidebarList(data.conversations || []);
+  } catch(e) { console.warn('Load convos failed:', e); }
+}
+
+function renderSidebarList(conversations) {
+  const list = document.getElementById('sidebar-list');
+  if (!list) return;
+  if (conversations.length === 0) {
+    list.innerHTML = '<div style="padding:1.5rem 0.75rem;text-align:center;color:rgba(44,32,23,0.3);font-size:0.78rem;">Suas conversas aparecem aqui</div>';
+    return;
+  }
+  list.innerHTML = conversations.map(c => {
+    const date = c.updatedAt ? new Date(c.updatedAt) : null;
+    const dateStr = date ? date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
+    const isActive = c.id === currentConversationId ? 'active' : '';
+    return `<div class="sidebar-item ${isActive}" onclick="loadConversation('${c.id}')">
+      <div class="sidebar-item-title">${c.title || 'Nova conversa'}</div>
+      <div class="sidebar-item-date">${dateStr} · ${c.messageCount || 0} msgs</div>
+      <button class="sidebar-item-delete" onclick="event.stopPropagation();deleteConversation('${c.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+async function saveCurrentConversation() {
+  const email = getAuthEmail();
+  if (!email || !currentConversationId || history.length < 2) return;
+  const firstUserMsg = history.find(m => m.role === 'user');
+  const title = firstUserMsg ? firstUserMsg.content.substring(0, 50) : 'Nova conversa';
+  const lastMsg = history[history.length - 1];
+  const preview = lastMsg ? lastMsg.content.substring(0, 80) : '';
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save', email,
+        conversationId: currentConversationId,
+        title, preview, messages: history
+      })
+    });
+    loadConversationList();
+  } catch(e) { console.warn('Save convo failed:', e); }
+}
+
+function autoSaveConversation() {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(saveCurrentConversation, 3000);
+}
+
+async function loadConversation(id) {
+  const email = getAuthEmail();
+  if (!email) return;
+  try {
+    const res = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'load', email, conversationId: id })
+    });
+    const data = await res.json();
+    if (data.messages) {
+      currentConversationId = id;
+      history = data.messages;
+      // Re-render messages
+      const container = document.getElementById('msgs');
+      container.innerHTML = '';
+      history.forEach(m => {
+        if (m.role === 'user') addMsg('user', m.content);
+        else if (m.role === 'assistant') addMsg('serena', m.content);
+      });
+      loadConversationList();
+      // Mobile: fechar sidebar
+      if (window.innerWidth <= 700) toggleSidebar();
+    }
+  } catch(e) { console.warn('Load convo failed:', e); }
+}
+
+async function deleteConversation(id) {
+  if (!confirm('Apagar esta conversa?')) return;
+  const email = getAuthEmail();
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', email, conversationId: id })
+    });
+    if (currentConversationId === id) {
+      startNewConversation();
+    }
+    loadConversationList();
+  } catch(e) { console.warn('Delete convo failed:', e); }
+}
+
+function startNewConversation() {
+  saveCurrentConversation();
+  currentConversationId = generateConvoId();
+  history = [];
+  const container = document.getElementById('msgs');
+  if (container) container.innerHTML = '';
+  getWelcome();
+  loadConversationList();
+}
+
+// ─── ADMIN LOGIN ─────────────────────────────────────────
+async function loginAdmin() {
+  const emailInput = document.getElementById('admin-email-input');
+  const passInput = document.getElementById('admin-password-input');
+  const errorEl = document.getElementById('admin-login-error');
+  const btn = document.getElementById('btn-admin-login');
+
+  errorEl.classList.remove('visible');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailInput.value.trim(),
+        password: passInput.value
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem(AUTH_KEY, JSON.stringify({
+        email: emailInput.value.trim().toLowerCase(),
+        name: 'Admin',
+        isAdmin: true,
+        adminToken: data.token,
+        verifiedAt: Date.now(),
+        expiresAt: Date.now() + (365 * 86400000),
+      }));
+      openAdminPanel();
+    } else {
+      errorEl.innerHTML = data.error || 'Credenciais inválidas';
+      errorEl.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Entrar ✦';
+    }
+  } catch(e) {
+    errorEl.innerHTML = 'Erro de conexão';
+    errorEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Entrar ✦';
+  }
+}
+
+// ─── ADMIN PANEL ─────────────────────────────────────────
+async function openAdminPanel() {
+  showScreen('screen-admin');
+  adminRefresh();
+}
+
+function closeAdminPanel() {
+  const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  if (auth.isAdmin) {
+    proceedToApp();
+  } else {
+    showScreen('screen-auth');
+  }
+}
+
+async function adminRefresh() {
+  const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  const token = auth.adminToken || '';
+  const content = document.getElementById('admin-content');
+  content.innerHTML = '<div class="admin-loading">Carregando dados...</div>';
+
+  try {
+    const res = await fetch('/api/admin-stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ action: 'stats' })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderAdminPanel(data);
+  } catch(e) {
+    content.innerHTML = '<div class="admin-loading">Erro ao carregar: ' + e.message + '</div>';
+  }
+}
+
+function renderAdminPanel(data) {
+  const s = data.summary;
+  const u = data.usage;
+  const content = document.getElementById('admin-content');
+
+  content.innerHTML = `
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card"><div class="admin-stat-label">Total assinantes</div><div class="admin-stat-value">${s.total}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Ativas</div><div class="admin-stat-value" style="color:#3a7d6a">${s.active}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Expiradas</div><div class="admin-stat-value" style="color:rgba(44,32,23,0.4)">${s.expired}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Canceladas</div><div class="admin-stat-value" style="color:#a0522d">${s.canceled}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Conversas total</div><div class="admin-stat-value">${u.totalConversations}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Msgs total</div><div class="admin-stat-value">${u.totalMessages}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Ativas 7 dias</div><div class="admin-stat-value">${u.activeUsers7d}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Pgto pendente</div><div class="admin-stat-value" style="color:#8b6914">${s.pastDue}</div></div>
+    </div>
+
+    <div class="admin-section-title">Gerenciar acesso</div>
+    <div class="admin-action-bar">
+      <input class="admin-input" id="admin-manage-email" placeholder="email@aluna.com" style="flex:1;min-width:200px">
+      <input class="admin-input" id="admin-manage-days" placeholder="dias" style="width:70px" value="60">
+      <button class="admin-btn" onclick="adminAddAccess()">Liberar</button>
+      <button class="admin-btn secondary" onclick="adminExtendAccess()">Estender</button>
+      <button class="admin-btn secondary" onclick="adminRemoveAccess()">Remover</button>
+    </div>
+    <div class="admin-msg" id="admin-manage-msg"></div>
+
+    <div class="admin-section-title">Assinantes</div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr>
+          <th>Email</th><th>Nome</th><th>Status</th><th>Produto</th><th>Dias restantes</th><th>Último evento</th>
+        </tr></thead>
+        <tbody>
+          ${data.subscribers.map(sub => `<tr>
+            <td>${sub.email}</td>
+            <td>${sub.name || '—'}</td>
+            <td><span class="status-badge ${sub.status}">${sub.status}</span></td>
+            <td>${sub.productName || '—'}</td>
+            <td>${sub.daysRemaining !== null ? sub.daysRemaining + 'd' : '∞'}</td>
+            <td style="font-size:0.7rem;color:rgba(44,32,23,0.4)">${sub.lastEvent || '—'}</td>
+          </tr>`).join('')}
+          ${data.subscribers.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:rgba(44,32,23,0.3);padding:1.5rem">Nenhum assinante ainda</td></tr>' : ''}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function adminAction(actionName) {
+  const auth = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+  const email = document.getElementById('admin-manage-email').value.trim();
+  const days = parseInt(document.getElementById('admin-manage-days').value) || 60;
+  const msgEl = document.getElementById('admin-manage-msg');
+
+  if (!email) { msgEl.className = 'admin-msg visible error'; msgEl.textContent = 'Digite um email'; return; }
+
+  try {
+    const res = await fetch('/api/admin-subscribers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + auth.adminToken },
+      body: JSON.stringify({ action: actionName, email, days })
+    });
+    const data = await res.json();
+    msgEl.className = 'admin-msg visible ' + (data.success || data.found !== undefined ? 'success' : 'error');
+    msgEl.textContent = data.message || JSON.stringify(data);
+    adminRefresh();
+  } catch(e) {
+    msgEl.className = 'admin-msg visible error';
+    msgEl.textContent = 'Erro: ' + e.message;
+  }
+}
+
+function adminAddAccess() { adminAction('add'); }
+function adminExtendAccess() { adminAction('extend'); }
+function adminRemoveAccess() { adminAction('remove'); }
 
 // ─── GATES KNOWLEDGE BASE (64 portões) ───────────────────
 const GATES_DB = {"1": {"n": "O CRIADOR", "c": "Individual de Conhecimento", "l": "Original Autoexpressão, Individualidade Autocrescimento, Criativa Autentêntica, Autoexploradora Segura, Magia Energia mais yang do, Vida DH.", "s": "Decepção Indisponível, Engano Destrutiva, Dormência Pânico, Desordem Pressão para criar algo, Sensação de fracasso. único no mundo.", "d": "", "df": ""}, "2": {"n": "A SACERDOTISA", "c": "Individual de Conhecimento", "l": "Energia mais yin do Beleza, DH Direção autêntica, Orientação Visionária Abundante, Receptiva Magnética, Atraente Entrega, Aberta a receber Confiança n", "s": "Fixação Perdida, Estressada Exausta, Medo Não pertencente, Teimosa Sentimento de, Deslocada esgotamento., Confusa", "d": "", "df": ""}, "3": {"n": "O MUTANTE", "c": "Individual de Conhecimento", "l": "Transformação Brincalhona, Nutrição Perseverante, Inovadora Presente, Determinada Estabelece ordem, Fé onde há confusão., Estrutura", "s": "Confusa Instável, Irritada Mente caótica, Fixada Apego, Super analítica Não confia no tempo, Teimosa Divino.", "d": "", "df": ""}, "4": {"n": "O FILÓSOFO", "c": "Coletivo de Lógica", "l": "Respostas Entendimento, Mente lógica Explicação, Brincalhona Inocente Perdão, Inovadora Traz novas possibilidades, Fé e soluções.", "s": "Dúvida Intolerante, Medo Ansiedade de que, Fixada nunca encontrará, Egoísta ordem e organização., Obsessiva", "d": "", "df": ""}, "5": {"n": "O RITMO", "c": "Coletivo de Lógica", "l": "Paciente Consistente Fiel, Atemporal Rotina, Ritmo natural Hábitos, Padrões fixos Ritual, Expansão do tempo Fluir", "s": "Fundamentalista Força as coisas, Impaciente A vida parece sempre, Agitada uma luta constante., Irregular, Não deixa fluir.", "d": "", "df": ""}, "6": {"n": "O PACIFICADOR", "c": "Tribal de Defesa", "l": "Diplomática Obstinada, Paz interior Acolhedora, Traz resolução aos Cria paz interior, conflitos Emocionalmente, Penetrante empoderada., Questionadora", "s": "Conflitos Julgadora, Violenta Reativa, Defensiva Carente, Destrutiva Vítima das emoções., Medo de nunca ser vista, ou ouvida.", "d": "", "df": ""}, "7": {"n": "O ALPHA", "c": "Coletivo de Lógica", "l": "Líder Empoderada, Democrática Serviço Corajosa, Influente Comprometida, Devota Observadora consciente, Oferece orientação Direção para o futuro., Cari", "s": "Fraca Prisioneira de, Corrompida Hesitante tendências, Egóica Autoritária, Força a liderança Luta para ser vista e, reconhecida.", "d": "", "df": ""}, "8": {"n": "O INFLUENCIADOR", "c": "Individual de Conhecimento", "l": "Modelo Autoexpressão, Exemplo Única, Criativa Dita influências, Autêntica Contribui sendo, Aperfeiçoamento radicalmente, Contribuir autêntica.", "s": "Pretensiosa Falta de originalidade, Distorce as coisas Imitação, Medíocre Desconectada do seu, Se auto sacrifica propósito de vida., Faz excessivament", "d": "", "df": ""}, "10": {"n": "NATURAL", "c": "Individual de Integração", "l": "Amor próprio Pessoalmente, Exemplo de amor empoderada, próprio Auto respeito, Nutrição Centrada em si, Poder criativo mesma., Integridade", "s": "Obcecada por si mesma Narcisista, Negligente Desiste fácil e se, Desconsideração (por si contenta com menos., mesma e pelos outros) Desonesta", "d": "", "df": ""}, "11": {"n": "O IDEALISTA", "c": "Coletivo de Detecção", "l": "Iluminada Contemplação, Harmonia interior, Equilíbrio Visionária, Criativa Imaginação, Ideias Poder de visualização., Realismo Mágico Inovadora, (sonh", "s": "Escuridão Medo, Iludida Forçar ideias que tem, Fantasia dificuldade em, Obscuro manifestar, Ansiedade Pensa dentro da, caixinha", "d": "", "df": ""}, "12": {"n": "O ROMÂNTICO", "c": "Individual de Conhecimento", "l": "Profética Coração puro, Discernimento Articulada, Romântica Expressão artística, Graça Expressa emoções de, Poética forma criativa.", "s": "Solidão Vaidosa em excesso., Solitária Descriminação Deixa que a hesitação e, Provoca o outro a cautela a paralisem., Elitista, Maliciosa", "d": "", "df": ""}, "13": {"n": "O CONFIDENTE", "c": "Coletivo de Detecção", "l": "Digna de confiança Cria espaços seguros, Presença para o outro, Discernimento Perdão, Guardiã dos segredos Ouve com empatia, Compassiva Escuta ativa", "s": "Intolerante Culpa, Discorda facilmente Ressentimento Mente, Pessimista fechada, Vitimista Fica presa em velhas, Dores do passado histórias.", "d": "", "df": ""}, "14": {"n": "A POTÊNCIA", "c": "Individual de Conhecimento", "l": "Engenhosa Sonhadora, Magnetizante Energia Próspera, eficiente Competente Inspiradora, Apaixonada Trabalho dos sonhos, Empoderada Amplia o potencial do", "s": "Desorientada Prisioneira, Cede facilmente Desempoderada, Impotente Medo e preocupação com, Incapaz dinheiro.", "d": "", "df": ""}, "15": {"n": "A MULHER SELVAGEM", "c": "Coletivo de Lógica", "l": "Selvagem Shakti, Amor pela humanidade Gaia, Liberdade, Flow Abraça diferentes ritmos, Magnética pessoais e extremos de, Natureza comportamento., Auten", "s": "Desagradável Apatia, Vazia Tenta forçar um ritmo, Extremista Tem hábitos extremos, Monótona que são frenéticos e, Autojulgamento improdutivos., Exaust", "d": "", "df": ""}, "16": {"n": "O ENTUSIASTA", "c": "Coletivo de Lógica", "l": "Entusiasmada Versátil, Dedicada Talentosa, Mestre no seu ofício Habilidosa, Comprometida com o Criativa, seu domínio. Autoexpressão, Multifacetada, Ot", "s": "Indiferente Auto iludida Preguiçosa, Se prende a técnicas Salta para o, Desempoderada desconhecido sem, Paralisa quando sabe preparação o suficiente.,", "d": "", "df": ""}, "17": {"n": "O DESCOBRIDOR", "c": "Coletivo de Lógica", "l": "Mente lógica Ideias lógicas, Curiosa Opinião clara, “Vidente de Padões\" Enxerga longe, Cria soluções Perspicaz, harmoniosas. Encontra soluções e, resp", "s": "Ansiosa Soberba, Distorce o tempo Negativa, Autocrítica Dogmática, Autoritária Excesso de opinião sem, Mente fechada ser convidada.", "d": "", "df": ""}, "18": {"n": "O OTIMIZADOR", "c": "Coletivo de Lógica", "l": "Cura Psicologia positiva, Mente lógica Discernimento, Cria melhoramentos Visão clara, Corrige Tem integridade e, Íntegra potencial de cura em, Serve c", "s": "Julgadora Espírito de vítima, Se sente inferior Crítica ao extremo, Se sente superior Perfeccionista, Autocritica", "d": "", "df": ""}, "19": {"n": "O ALTAMENTE SENSÍVEL", "c": "Tribal do Ego", "l": "Sensível Conectada Empodera a, Interdependente comunidade., Energia emocional Empatia, Autocuidado Sensível às, necessidades do, outro.", "s": "Nervosa Excessivamente Carente, sensível Isolada, Sem suporte Codependente, Egoista Se doa demais", "d": "", "df": ""}, "20": {"n": "O TRANQUILO", "c": "", "l": "Presença Calma, Contemplação Alquimia, Clareza Íntegra, Consciência elevada Autoconfiante, Confiança na ordem Está presente e fala a, Divina sua verda", "s": "Preguiçosa Superficial Se auto pressiona, Ausente Frustrada Dificuldade, Agitada em enxergar o, Insegura problema do outro., Nega sua intuição", "d": "", "df": ""}, "21": {"n": "O GERENTE", "c": "Tribal do Ego", "l": "Força de vontade Coragem, Autoconfiante Nobreza, Penetrante Assume o comando e, Autoridade gerencia recursos., Valor", "s": "Submissa Controladora Vítima de uma, Excesso de necessidade de, autoconfiança controlar., Não gosta de ser Não se sente digna e, mandada. apoiada.", "d": "", "df": ""}, "22": {"n": "O CONVITE", "c": "Individual de Conhecimento", "l": "Graça Oferece beleza e, Charme suporte/compreensão, Aceitação emocional a si mesma e aos, Convidativa outros., Expressão Guardiã de memórias, Cria esp", "s": "Mal-humorada Nervosa Retêm ou sufoca sua, em relação à franqueza paixão., Inapropriada Temperamental, Medo Pressão para se, Deselegante expressar.", "d": "", "df": ""}, "23": {"n": "O LINGUISTA", "c": "Individual de Conhecimento", "l": "Palavras Simplicidade, Traduz insights Direta Espontânea, Fala a verdade, Singular Transformação, Traz soluções Articula ideias inovadoras, Articulada", "s": "Complexidade Falar antes da hora, Fragmentada Amargura Ansiedade e pressão, Silenciosa para compartilhar o, Impulsividade que você sabe., Ignorância", "d": "", "df": ""}, "24": {"n": "O INVENTOR", "c": "Individual de Conhecimento", "l": "Voz da Razão Incentivadora, Silenciosa Revelações Racionaliza sabiamente, Pensadora Individual Renovação mental, Engenhosa Inteligente Poder de criar,", "s": "Melancólica Ansiosa, Mente hiperativa Presa a Se recusa a mudar, padrões antigos. Medo de não saber", "d": "", "df": ""}, "25": {"n": "O CURANDEIRO", "c": "Individual Centrado", "l": "Inocente Gentil, Amor universal e Honesta, incondicional Atitude jovem, Fé no Divino Aceitação Empodera, Confia na vida outros a amar a vida., Vive de", "s": "Ignorante Constringida, Fria Egóica, Ansiosa Medo e desconfiança, Desconectada da vida., Julga a si mesma e aos, outros.", "d": "", "df": ""}, "26": {"n": "O HIPNOTIZADOR", "c": "Tribal do Ego", "l": "Persuasiva Íntegra, Vendas Otimista, Sabe vender Corajosa, Brincalhona Sincera Confiante, Engenhosa Astúcia, Vê um futuro melhor.", "s": "Manipuladora Orgulhosa, Prepotente Controla os outros para, Egóica seu próprio ganho., Escassa, Desonesta", "d": "", "df": ""}, "27": {"n": "O CUIDADOR", "c": "Tribal de Defesa", "l": "Cuidadora Altruísta, Transborda Generosa, abundância Protetora, Nutrir Calorosa, Compaixão Responsável, Confiante Extremamente auto, responsável.", "s": "Codependência Culpa Baixa autoestima Doa, Cuida excessivamente pensando no próprio, Egóica benefício, Abnegação Se sacrifica demais, pelos outros.", "d": "", "df": ""}, "28": {"n": "O HERÓI", "c": "Individual de Conhecimento", "l": "Propósito Dom da, Corajosa transformação, Profunda Entende a, Imortalidade Psique transitoriedade da, Totalidade vida.", "s": "Falta de propósito Vazio Se arrisca em excesso, interno Melancólica, Jogos de azar \"Oca\" por dentro, Se recusa a agir Medo de Medo de suas sombras, fa", "d": "", "df": ""}, "29": {"n": "O COMPROMETIDO", "c": "Coletivo de Detecção", "l": "Devota Profunda, Prontidão Persistente, Tantra Ousada, Confiante Envolvente Dedicada às coisas, Transformação que importam e que te, iluminam.", "s": "Indecisa Frustrada, Super comprometida Sem comprometimento, Não confiável Insensível, Sem convicção Esgotada Se deixa levar pela opinião, Desiste faci", "d": "", "df": ""}, "30": {"n": "O IGNITOR", "c": "Coletivo de Detecção", "l": "Apaixonada Profunda Determinada, Impulsiva Sensível, Ousada Intensa nos desejos e, Leve emoções., Desejo", "s": "Nunca satisfeita Impaciente, Excessiva Perde a fé na vida, Séria Desemparada, Esgotada Se joga sem cuidado", "d": "", "df": ""}, "31": {"n": "O VISIONÁRIO", "c": "Coletivo de Lógica", "l": "Influente Humilde, Líder Conduz, Visionária Influencia, Visão coletiva intencionalmente os, Constante outros em uma visão, Tranquila justa., Dá o cami", "s": "Arrogante Medo de liderar, Zomba dos outros Força a assumir a, Procrastinadora liderança., Manipuladora", "d": "", "df": ""}, "32": {"n": "O GUARDIÃO", "c": "Tribal do Ego", "l": "Sabe seu lugar no todo Consideração, Mudança Sucesso, Detecta talentos Prevê fatos, Consistente Ancestralidade, Sábia Sente e lidera uma, Intuitiva mu", "s": "Medo do fracasso Isolada, Deslocada Desarticulada Vive sozinha, Vítima da própria ideia, Pânico de sucesso., Fracasso, Codependente", "d": "", "df": ""}, "33": {"n": "A ALMA VELHA", "c": "Coletivo de Detecção", "l": "Sábia Mindfullness, Retiro Memórias, Conta histórias Guardiã de saberes, Contemplação Compartilha lições do, Curandeira passado., Reclusa, Privacidade", "s": "Esquecida Fechada, Censura Desempoderada, Fala palavras negativas Vitimização, sobre si mesma e sobre a Compartilha narrativas, vida. enraizadas na do", "d": "", "df": ""}, "34": {"n": "A CASA DE FORÇA", "c": "", "l": "Poder pessoal Auto Autoconfiante, capacitada Auto empoderada, Independente Movimento, Impressionante Reserva inesgotável de, Energia soberana carisma.", "s": "Modesta demais Sem Falta de visão clara, poder Egocêntrica, Força as coisas Soberania, Não sabe a diferença Sempre muito ocupada, entre poder e forçar", "d": "", "df": ""}, "35": {"n": "A EXPLORADORA", "c": "Coletivo de Detecção", "l": "Vivaz Milagres, Corajosa Fome de vida, Mudança Estável, Aventureira Compartilha sua, Experiências sabedoria através de, emocionais suas aventuras.", "s": "Entediada Excesso de estímulos, Fome insaciável de Impaciente, novas experiências. Agitada, Sempre precisando de, mudança", "d": "", "df": ""}, "36": {"n": "A TEMPESTADE", "c": "Coletivo de Detecção", "l": "Energia sexual Vivaz, Inteligente Compaixão, Compassiva Gentil, Profunda Sabedoria emocional, Inspiradora", "s": "Nervosa Oprimida, Propensa a crises Negligente, emocionais Turbulenta, Emocionalmente Inquieta, indisponível Cria drama e caos.", "d": "", "df": ""}, "37": {"n": "A BONDOSA", "c": "Tribal do Ego", "l": "Energia materna Comunicação saudável, Benevolente Gentil Igualitária, Carinhosa Sensível, Calorosa Conexão sexual, Família Mantêm limites fortes, Afet", "s": "Fraca Controladora, Cruel Excessivamente Submissa, sentimental Procura a paz fora de, si mesma.", "d": "", "df": ""}, "38": {"n": "O DESAFIADOR", "c": "Individual de Conhecimento", "l": "Independente Digna de respeito, Trabalhadora da luz Discernimento, Corajosa Perseverante Luta por coisas que tem, Faz as coisas terem significado e pr", "s": "Melancólica Derrotista Compra batalhas que, Agressiva não são suas., Insatisfeita Luta por lutar sem ter, Teimosa clareza do porquê.", "d": "", "df": ""}, "39": {"n": "O LIBERTADOR", "c": "Individual de Conhecimento", "l": "Dinâmica Catalisa liberação, Única Provoca os outros a, Sedutora Abundante assumirem a, Espiritual responsabilidade., Clareza É força de, transformaçã", "s": "Oprimida Assume, Provocativa responsabilidade pelos, Medíocre outros., Carente Vítima de oscilação de, Compras excessivas humor., Medo da falta", "d": "", "df": ""}, "40": {"n": "O SOLITÁRIO", "c": "Tribal do Ego", "l": "Descontração Ética, Equilíbrio Trabalho ético, Coração Arquétipo do pai, Amor Auto nutrição, Confiável Generosa, Relaxamento Servir a comunidade, Desc", "s": "Se doa demais Exausta, Complacente Sentimento de culpa, Força as coisas Limites fracos, acontecerem Coloca o auto valor naquilo, que faz pelos os outr", "d": "", "df": ""}, "41": {"n": "O ORIGINADOR", "c": "Coletivo de Detecção", "l": "Imaginativa Fé no tempo Divino, Esperançosa Transformação, Sonhadora Líder, Manifestadora Visionária, Original Intui o que está por vir e, Fome de sen", "s": "Imagina os piores Hiperativa, cenários Inquieta, Nega seu poder criativo Vive no mundo da, Medo do julgamento fantasia.", "d": "", "df": ""}, "42": {"n": "O FINALIZADOR", "c": "Coletivo de Detecção", "l": "Atenciosa Intencional Escreve a própria história, Nômade Desapegada, Ciclos de vida-morte- Cerimonialista, vida Experiências Conclusão, Sábia Fechamen", "s": "Expectativas Auto julgamento, Decepcionada Paralisa ou tem, Muito apegada dificuldade para, Auto pressão começar as coisas., Confusa", "d": "", "df": ""}, "43": {"n": "O DISRUPTOR", "c": "Individual de Conhecimento", "l": "Confia na sabedoria Revolucionária, interna Audição Individual, seletiva Canal de insights, Escuta interior Auto consciência, Criativa Canaliza com, Ú", "s": "Não quer escutar os Precisa estar certa, outros Frustração, Preocupada Barulhenta Desesperada Ansiosa, Melancólica Teimosa", "d": "", "df": ""}, "44": {"n": "O FAREJADOR", "c": "Tribal do Ego", "l": "Relacionamentos Conexão, cármicos Reconhece talentos, Trabalho em equipe Habilidade para ler, Vê padrões do pessoas., passado Transformação, Possibili", "s": "Padrões que causam Engana os outros, distorção Desconfiança Medo que o passado, Julga errado se repita., Se sente paralisado", "d": "", "df": ""}, "45": {"n": "O PRÓSPERO", "c": "Tribal do Ego", "l": "Líder/influência em Abundante em recursos, finanças Bem-estar, Dinheiro Cria prosperidade, Alocar pessoas Distribui recursos, Boa vontade Generosa", "s": "Insegura Ostentação, Tímida Não consegue lidar, Dominante com autoridades., Liderança egoísta, Escassez", "d": "", "df": ""}, "46": {"n": "O SENSUAL", "c": "Coletivo de Detecção", "l": "Amor pelo corpo Êxtase Personificação, Aproveita a vida da sensualidade, Prazer Serena, Deleite Sortuda, Deitar-se com a vida Corporificação, Aventure", "s": "Séria demais Odeia o corpo, Frígida Não se auto nutre Cria, Frívola caos na vida, Seriedade na vida Desconexão com o, Compulsão corpo.", "d": "", "df": ""}, "47": {"n": "O ALQUIMISTA", "c": "Coletivo de Detecção", "l": "Transmutação Imaginativa, Insights Fé, Karma Realizações, Mutação Entrega, Mística Espera por clareza, Corajosa Transforma dor em, Saltos quânticos ou", "s": "Oprimida Desesperada Mente fechada, Dogmática \"Quadrada\", Vítima Desesperançosa Não acredita em si, mesma., Muito mental", "d": "", "df": ""}, "49": {"n": "O REVOLUCIONÁRIO", "c": "Tribal do Ego", "l": "Apaixonada Valores, Justa É líder nos, Conectada relacionamentos, Leal Traz paz através da, Revolucionária revolução, Transformação Cria harmonia", "s": "Rejeita seus valores Desiste cedo demais, Dormente Cria drama e conflito, Imóvel Quer que todos a, Reativa obedeçam., Evita intimidade", "d": "", "df": ""}, "50": {"n": "O MAESTRO", "c": "Tribal de Defesa", "l": "Moralidade Equilíbrio, Ordem Bússola moral, Responsabilidade Intuição é seu faro, Confiante Harmonia, Vive seus valores Música, Intuitiva Empodera o c", "s": "Irresponsável Corrupta, Sobrecarregada Não é íntegra com, Corrompida seus valores., Não confiável", "d": "", "df": ""}, "51": {"n": "O TROVÃO", "c": "Tribal do Ego", "l": "Corajosa Forte, Independente Poderosa, Inicia Amor incondicional, Criativa Empodera, Disruptiva Desperta, Competidora saudável", "s": "Pessimista Hostil, Insistente Covarde, Agitada Choque que gera, Ansiosa ruptura, Provocativa Desconectada do, divino", "d": "", "df": ""}, "52": {"n": "A MONTANHA", "c": "Coletivo de Lógica", "l": "Estabiliza Paciente Moderadora, Aterrada Concentrada, Focada Flui, Servir Fluxo e refluxo., Quieta, Quietude", "s": "Inquieta Não se move ao novo., Prisioneira Escassa, Estressada Força as coisas a, Excessiva em tudo acontecerem, ou se, Deixa a opressão apressa e se ", "d": "", "df": ""}, "53": {"n": "O INICIADOR", "c": "Coletivo de Detecção", "l": "Inicia Intensa, Vê oportunidades Abundante, Expansora Serena, Iniciadora Navega por novos, Força de vida começos.", "s": "Imatura Zona de conforto, Impotente Inconstante Fracasso, Incapacidade de iniciar Se sente pressionada a, ou concluir as coisas. iniciar.", "d": "", "df": ""}, "54": {"n": "O CONQUISTADOR", "c": "Tribal do Ego", "l": "Motivadora Focada, Sucesso Domínio material, Ambição Autoconfiante Inspiradora Aspiração, Próspera Amor por processos., Crescimento espiritual", "s": "Sem ambição Manipuladora, Gananciosa Amargurada, Ingrata Só pensa em si, Coloca muito foco no própria., dinheiro.", "d": "", "df": ""}, "55": {"n": "O EXPANSOR", "c": "Individual de Conhecimento", "l": "Abundante Criativa, Espírito Sem limitações, Liberdade Experiencia a, Generosa Romântica espiritualidade através, Emocional das emoções., Fé", "s": "Super estimulada Não confia na fonte, Indecisa Dramática, Medo da falta Distraída Vazio, Vitimização Presa em ciclos de, esperança e dor.", "d": "", "df": ""}, "56": {"n": "O COMEDTIANTE", "c": "Coletivo de Detecção", "l": "Contadora de Riso, histórias Sensações, Aventureira Sensualidade, Educadora Humor, Entretêm Enriquece a vida do outro., Vivaz Pessoalmente empoderada,", "s": "Superestimulada Inquieta, Distraída Esgota a energia dos, Perdida outros., Se prende a histórias Exagera nas próprias, limitantes. histórias.", "d": "", "df": ""}, "57": {"n": "O INTUITIVO", "c": "", "l": "Clarividente, Intuitiva, Suavidade Momento, Instintiva, presente Habilidades, Clareza, psíquicas, Conhecimento", "s": "Se sente paralisada, Inquieta, Melancólica, Hesitante, Falta de confiança na, Indecisa, vida e em si mesma., Impetuosa", "d": "Suavidade Momento Instintiva presente Habilidades Clareza psíquicas", "df": ""}, "58": {"n": "O VITAL", "c": "Coletivo de Lógica", "l": "Vitalidade Contentamento, Força vital Serviço, Maestria Mente Lógica, Correção Exuberante, Cultiva alegria Cura, Transformação Energia de vida", "s": "Insatisfação Estresse, Ingrata Pressão, Nega a alegria Busca não saudável por, Culpa melhoramento., Vergonha Perfeccionismo, Busca alegria fora de si", "d": "", "df": ""}, "59": {"n": "A SIRENE", "c": "Tribal de Defesa", "l": "Aura Sensual Transparência, Intimidade Conexão Vulnerável Abundante, Presença Penetrante, Magnética Honesta Mestre em sexualidade.", "s": "Desonesta Medo da falta, Excluída Não se permite ser, Vítima de trauma vulnerável, Luta para sobreviver Relacionamentos, Codependente insustentáveis, ", "d": "", "df": ""}, "60": {"n": "O MÁGICO", "c": "Individual de Conhecimento", "l": "Magia Criativa, Inovação Manifestação Otimista Transformação, Mudança Realismo mágico, Quebra as regras (sonhadora saudável), Superar obstáculos Leis ", "s": "Limitação Rígida, Não estruturada Controladora, Não permite o Fica na zona de conforto, crescimento de algo. Vítima de leis e regras", "d": "", "df": ""}, "61": {"n": "O MÍSTICO", "c": "Individual de Conhecimento", "l": "Buscadora da verdade Entende os mistérios, Original Canalizadora da vida, Inspiração Verdade interior, Misticismo, Autêntica", "s": "Psicose Caótica, Ingrata Amargurada, Racionaliza demais Vitimização, Fanática Desencantada com a, Questiona seu lugar na vida., vida", "d": "", "df": ""}, "62": {"n": "O ORGANIZADOR", "c": "Coletivo de Lógica", "l": "Explicação Precisão, Linguagem Organiza ideias, penetrante Conceitos Detalhista, Fatos Lógica, Simplicidade Clareza, Compartilhar fatos Comunica com, ", "s": "Excesso de racionalidade Pedante (exibe conhecimento, Obsessiva por detalhes que não possui), Escrupulosa Preocupada, Medo Não deixa \"fluir\", Planeja ", "d": "", "df": ""}, "63": {"n": "O DETETIVE", "c": "Coletivo de Lógica", "l": "Investigadora Solucionadora de problemas, Verdade Compreensão Usa a dúvida como uma porta, Questionamento de entrada para, saudável possibilidades., P", "s": "Dúvida Incerteza, Suspeita Perda de curiosidade, Lógica demais Culpa coisas externas, Luta pela certeza pela própria dúvida., Cética", "d": "", "df": ""}, "64": {"n": "O METAFÍSICO", "c": "Coletivo de Detecção", "l": "Pensadora Abstrato, Visual Imaginativa e criativa, Artista/Artística para transcender a, Estética confusão., Iluminação Espiritual, Liberdade criativa", "s": "Confusão Desiste de sonhar, Pressão mental Se preocupa muito com, Caótica o “como\" suas ideias se, Desesperada tornarão realidade., Inadequada, Por am", "d": "Você está aqui para.. REFLETIR e REVELAR a verdade. O segredo do seu magnestismo está em... Estar vivendo o momento presente e se permite ser diferente a cada dia, dançando com o que a vida te traz e seguindo seus desejos no", "df": ""}};
@@ -1391,6 +1962,9 @@ async function initChat() {
   updateHeader();
   buildProfilePanel();
   updateTrackerUI();
+  // Inicializar sistema de conversas
+  currentConversationId = generateConvoId();
+  loadConversationList();
   await getWelcome();
 }
 
@@ -1564,6 +2138,9 @@ async function sendMsg() {
 
   // Track topics explored
   detectTopics(text + ' ' + message);
+
+  // Auto-salvar conversa
+  autoSaveConversation();
 
   // Show contextual option buttons
   if (options.length > 0) {
