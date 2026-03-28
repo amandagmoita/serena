@@ -729,6 +729,101 @@
       padding-top: env(safe-area-inset-top, 35px);
     }
   }
+
+  /* AUTH / LOGIN */
+  #screen-auth {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.25rem 3rem;
+    background: linear-gradient(160deg, var(--wheat) 0%, var(--cream) 55%, rgba(218,163,143,0.4) 100%);
+  }
+  .auth-card {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    border: 1px solid rgba(155,125,97,0.14);
+    box-shadow: 0 20px 60px rgba(44,32,23,0.07);
+    animation: fadeUp 0.7s ease 0.15s both;
+    text-align: center;
+  }
+  .auth-card h2 {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.5rem;
+    color: var(--milky);
+    margin-bottom: 0.4rem;
+  }
+  .auth-card .subtitle {
+    font-size: 0.85rem;
+    color: rgba(44,32,23,0.55);
+    line-height: 1.7;
+    margin-bottom: 1.8rem;
+  }
+  .auth-card .field { text-align: left; }
+  .auth-card .field input { text-align: center; font-size: 1rem; }
+  .auth-error {
+    background: rgba(218,163,143,0.2);
+    border: 1.5px solid var(--peach);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: var(--dark);
+    line-height: 1.5;
+    display: none;
+  }
+  .auth-error.visible { display: block; animation: fadeUp 0.3s ease; }
+  .auth-error a { color: var(--milky); font-weight: 400; text-decoration: underline; }
+  .auth-success {
+    background: rgba(146,173,164,0.2);
+    border: 1.5px solid var(--eucalyptus);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: var(--dark);
+    line-height: 1.5;
+    display: none;
+  }
+  .auth-success.visible { display: block; animation: fadeUp 0.3s ease; }
+  .auth-warning {
+    background: rgba(254,216,166,0.3);
+    border: 1.5px solid var(--cream);
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--dark);
+    display: none;
+  }
+  .auth-warning.visible { display: block; }
+  .auth-days {
+    font-size: 0.72rem;
+    color: rgba(44,32,23,0.4);
+    margin-top: 0.75rem;
+  }
+  .auth-logout {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(155,125,97,0.15);
+    border-radius: 10px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.68rem;
+    color: var(--milky);
+    cursor: pointer;
+    z-index: 50;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    display: none;
+  }
+  .auth-logout:hover { background: rgba(155,125,97,0.1); }
 </style>
 </head>
 <body>
@@ -738,6 +833,38 @@
   <p class="loading-label" id="loading-label">Iniciando...</p>
   <p class="loading-sub" id="loading-sub"></p>
 </div>
+
+<div id="screen-auth" class="screen">
+  <div class="logo-wrap">
+    <img class="logo-img" src="/logo-transparent.png" alt="Vida Autoral">
+    <div class="brand-tag">Vida Autoral</div>
+  </div>
+  <div class="auth-card">
+    <div class="card-icon">✦</div>
+    <h2>Acesse a Serena</h2>
+    <p class="subtitle">Digite o email que você usou na compra para acessar sua guia de autoconhecimento.</p>
+    <div class="field">
+      <label>Seu email</label>
+      <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email"
+        onkeydown="if(event.key==='Enter')verifyAccess()">
+    </div>
+    <button class="btn btn-primary" id="btn-auth" onclick="verifyAccess()" style="margin-top:1rem">
+      Entrar ✦
+    </button>
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+    <div id="auth-warning" class="auth-warning"></div>
+    <div id="auth-days" class="auth-days"></div>
+    <p class="note" style="margin-top:1.5rem">
+      Ainda não tem acesso?
+      <a href="https://pay.hotmart.com/R104334883O" target="_blank" style="color:var(--milky);text-decoration:underline;">
+        Garanta sua assinatura →
+      </a>
+    </p>
+  </div>
+</div>
+
+<button class="auth-logout" id="btn-logout" onclick="logoutAuth()">Sair</button>
 
 <div id="screen-onboarding" class="screen">
   <div class="logo-wrap">
@@ -816,6 +943,140 @@
 // API keys are stored securely in Vercel environment variables
 // All API calls go through /api/chat serverless function
 const STORAGE_KEY = 'serena_user_v3';
+
+// ─── AUTENTICAÇÃO HOTMART ────────────────────────────────
+const AUTH_KEY = 'serena_auth_v1';
+
+async function verifyAccess() {
+  const emailInput = document.getElementById('auth-email');
+  const btn = document.getElementById('btn-auth');
+  const errorEl = document.getElementById('auth-error');
+  const successEl = document.getElementById('auth-success');
+  const warningEl = document.getElementById('auth-warning');
+  const daysEl = document.getElementById('auth-days');
+  const email = emailInput.value.trim().toLowerCase();
+
+  errorEl.classList.remove('visible');
+  successEl.classList.remove('visible');
+  warningEl.classList.remove('visible');
+  daysEl.textContent = '';
+
+  if (!email || !email.includes('@')) {
+    errorEl.innerHTML = 'Digite um email válido.';
+    errorEl.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch('/api/verify-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (data.access) {
+      localStorage.setItem(AUTH_KEY, JSON.stringify({
+        email, name: data.name,
+        expiresAt: data.expiresAt,
+        verifiedAt: Date.now()
+      }));
+      successEl.innerHTML = '✦ Acesso confirmado! Entrando...';
+      successEl.classList.add('visible');
+      if (data.warning) {
+        warningEl.innerHTML = '⚠ ' + data.message;
+        warningEl.classList.add('visible');
+      }
+      if (data.daysRemaining) {
+        daysEl.textContent = data.daysRemaining + ' dias restantes de acesso';
+      }
+      setTimeout(() => proceedToApp(), 1500);
+    } else {
+      let msg = data.message || 'Acesso não encontrado.';
+      msg += '<br><br><a href="https://pay.hotmart.com/R104334883O" target="_blank">Garanta seu acesso à Serena →</a>';
+      errorEl.innerHTML = msg;
+      errorEl.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Entrar ✦';
+    }
+  } catch (e) {
+    console.error('Auth error:', e);
+    errorEl.innerHTML = 'Erro de conexão. Tente novamente.';
+    errorEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Entrar ✦';
+  }
+}
+
+function proceedToApp() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.name && parsed.hdData) {
+        user = parsed;
+        hdData = parsed.hdData;
+        showLoading('Bem-vinda de volta, ' + user.name.split(' ')[0] + '...', '', 1800, initChat);
+        return;
+      }
+    } catch(e) {}
+  }
+  showLoading('Iniciando...', '', 1000, () => showScreen('screen-onboarding'));
+}
+
+function checkAuth() {
+  const auth = localStorage.getItem(AUTH_KEY);
+  if (!auth) return false;
+  try {
+    const data = JSON.parse(auth);
+    if (data.expiresAt && Date.now() > data.expiresAt) {
+      localStorage.removeItem(AUTH_KEY);
+      return false;
+    }
+    if (Date.now() - data.verifiedAt > 86400000) {
+      reVerifyAccess(data.email);
+    }
+    return true;
+  } catch(e) {
+    localStorage.removeItem(AUTH_KEY);
+    return false;
+  }
+}
+
+async function reVerifyAccess(email) {
+  try {
+    const res = await fetch('/api/verify-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!data.access) {
+      localStorage.removeItem(AUTH_KEY);
+      alert('Seu acesso expirou ou foi cancelado. Faça login novamente.');
+      showScreen('screen-auth');
+    } else {
+      const auth = JSON.parse(localStorage.getItem(AUTH_KEY));
+      auth.verifiedAt = Date.now();
+      auth.expiresAt = data.expiresAt;
+      localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+    }
+  } catch(e) { console.warn('Re-verify failed:', e); }
+}
+
+function logoutAuth() {
+  localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('btn-logout').style.display = 'none';
+  showScreen('screen-auth');
+}
+
+function showLogoutButton() {
+  document.getElementById('btn-logout').style.display = 'block';
+}
 
 // ─── GATES KNOWLEDGE BASE (64 portões) ───────────────────
 const GATES_DB = {"1": {"n": "O CRIADOR", "c": "Individual de Conhecimento", "l": "Original Autoexpressão, Individualidade Autocrescimento, Criativa Autentêntica, Autoexploradora Segura, Magia Energia mais yang do, Vida DH.", "s": "Decepção Indisponível, Engano Destrutiva, Dormência Pânico, Desordem Pressão para criar algo, Sensação de fracasso. único no mundo.", "d": "", "df": ""}, "2": {"n": "A SACERDOTISA", "c": "Individual de Conhecimento", "l": "Energia mais yin do Beleza, DH Direção autêntica, Orientação Visionária Abundante, Receptiva Magnética, Atraente Entrega, Aberta a receber Confiança n", "s": "Fixação Perdida, Estressada Exausta, Medo Não pertencente, Teimosa Sentimento de, Deslocada esgotamento., Confusa", "d": "", "df": ""}, "3": {"n": "O MUTANTE", "c": "Individual de Conhecimento", "l": "Transformação Brincalhona, Nutrição Perseverante, Inovadora Presente, Determinada Estabelece ordem, Fé onde há confusão., Estrutura", "s": "Confusa Instável, Irritada Mente caótica, Fixada Apego, Super analítica Não confia no tempo, Teimosa Divino.", "d": "", "df": ""}, "4": {"n": "O FILÓSOFO", "c": "Coletivo de Lógica", "l": "Respostas Entendimento, Mente lógica Explicação, Brincalhona Inocente Perdão, Inovadora Traz novas possibilidades, Fé e soluções.", "s": "Dúvida Intolerante, Medo Ansiedade de que, Fixada nunca encontrará, Egoísta ordem e organização., Obsessiva", "d": "", "df": ""}, "5": {"n": "O RITMO", "c": "Coletivo de Lógica", "l": "Paciente Consistente Fiel, Atemporal Rotina, Ritmo natural Hábitos, Padrões fixos Ritual, Expansão do tempo Fluir", "s": "Fundamentalista Força as coisas, Impaciente A vida parece sempre, Agitada uma luta constante., Irregular, Não deixa fluir.", "d": "", "df": ""}, "6": {"n": "O PACIFICADOR", "c": "Tribal de Defesa", "l": "Diplomática Obstinada, Paz interior Acolhedora, Traz resolução aos Cria paz interior, conflitos Emocionalmente, Penetrante empoderada., Questionadora", "s": "Conflitos Julgadora, Violenta Reativa, Defensiva Carente, Destrutiva Vítima das emoções., Medo de nunca ser vista, ou ouvida.", "d": "", "df": ""}, "7": {"n": "O ALPHA", "c": "Coletivo de Lógica", "l": "Líder Empoderada, Democrática Serviço Corajosa, Influente Comprometida, Devota Observadora consciente, Oferece orientação Direção para o futuro., Cari", "s": "Fraca Prisioneira de, Corrompida Hesitante tendências, Egóica Autoritária, Força a liderança Luta para ser vista e, reconhecida.", "d": "", "df": ""}, "8": {"n": "O INFLUENCIADOR", "c": "Individual de Conhecimento", "l": "Modelo Autoexpressão, Exemplo Única, Criativa Dita influências, Autêntica Contribui sendo, Aperfeiçoamento radicalmente, Contribuir autêntica.", "s": "Pretensiosa Falta de originalidade, Distorce as coisas Imitação, Medíocre Desconectada do seu, Se auto sacrifica propósito de vida., Faz excessivament", "d": "", "df": ""}, "10": {"n": "NATURAL", "c": "Individual de Integração", "l": "Amor próprio Pessoalmente, Exemplo de amor empoderada, próprio Auto respeito, Nutrição Centrada em si, Poder criativo mesma., Integridade", "s": "Obcecada por si mesma Narcisista, Negligente Desiste fácil e se, Desconsideração (por si contenta com menos., mesma e pelos outros) Desonesta", "d": "", "df": ""}, "11": {"n": "O IDEALISTA", "c": "Coletivo de Detecção", "l": "Iluminada Contemplação, Harmonia interior, Equilíbrio Visionária, Criativa Imaginação, Ideias Poder de visualização., Realismo Mágico Inovadora, (sonh", "s": "Escuridão Medo, Iludida Forçar ideias que tem, Fantasia dificuldade em, Obscuro manifestar, Ansiedade Pensa dentro da, caixinha", "d": "", "df": ""}, "12": {"n": "O ROMÂNTICO", "c": "Individual de Conhecimento", "l": "Profética Coração puro, Discernimento Articulada, Romântica Expressão artística, Graça Expressa emoções de, Poética forma criativa.", "s": "Solidão Vaidosa em excesso., Solitária Descriminação Deixa que a hesitação e, Provoca o outro a cautela a paralisem., Elitista, Maliciosa", "d": "", "df": ""}, "13": {"n": "O CONFIDENTE", "c": "Coletivo de Detecção", "l": "Digna de confiança Cria espaços seguros, Presença para o outro, Discernimento Perdão, Guardiã dos segredos Ouve com empatia, Compassiva Escuta ativa", "s": "Intolerante Culpa, Discorda facilmente Ressentimento Mente, Pessimista fechada, Vitimista Fica presa em velhas, Dores do passado histórias.", "d": "", "df": ""}, "14": {"n": "A POTÊNCIA", "c": "Individual de Conhecimento", "l": "Engenhosa Sonhadora, Magnetizante Energia Próspera, eficiente Competente Inspiradora, Apaixonada Trabalho dos sonhos, Empoderada Amplia o potencial do", "s": "Desorientada Prisioneira, Cede facilmente Desempoderada, Impotente Medo e preocupação com, Incapaz dinheiro.", "d": "", "df": ""}, "15": {"n": "A MULHER SELVAGEM", "c": "Coletivo de Lógica", "l": "Selvagem Shakti, Amor pela humanidade Gaia, Liberdade, Flow Abraça diferentes ritmos, Magnética pessoais e extremos de, Natureza comportamento., Auten", "s": "Desagradável Apatia, Vazia Tenta forçar um ritmo, Extremista Tem hábitos extremos, Monótona que são frenéticos e, Autojulgamento improdutivos., Exaust", "d": "", "df": ""}, "16": {"n": "O ENTUSIASTA", "c": "Coletivo de Lógica", "l": "Entusiasmada Versátil, Dedicada Talentosa, Mestre no seu ofício Habilidosa, Comprometida com o Criativa, seu domínio. Autoexpressão, Multifacetada, Ot", "s": "Indiferente Auto iludida Preguiçosa, Se prende a técnicas Salta para o, Desempoderada desconhecido sem, Paralisa quando sabe preparação o suficiente.,", "d": "", "df": ""}, "17": {"n": "O DESCOBRIDOR", "c": "Coletivo de Lógica", "l": "Mente lógica Ideias lógicas, Curiosa Opinião clara, “Vidente de Padões\" Enxerga longe, Cria soluções Perspicaz, harmoniosas. Encontra soluções e, resp", "s": "Ansiosa Soberba, Distorce o tempo Negativa, Autocrítica Dogmática, Autoritária Excesso de opinião sem, Mente fechada ser convidada.", "d": "", "df": ""}, "18": {"n": "O OTIMIZADOR", "c": "Coletivo de Lógica", "l": "Cura Psicologia positiva, Mente lógica Discernimento, Cria melhoramentos Visão clara, Corrige Tem integridade e, Íntegra potencial de cura em, Serve c", "s": "Julgadora Espírito de vítima, Se sente inferior Crítica ao extremo, Se sente superior Perfeccionista, Autocritica", "d": "", "df": ""}, "19": {"n": "O ALTAMENTE SENSÍVEL", "c": "Tribal do Ego", "l": "Sensível Conectada Empodera a, Interdependente comunidade., Energia emocional Empatia, Autocuidado Sensível às, necessidades do, outro.", "s": "Nervosa Excessivamente Carente, sensível Isolada, Sem suporte Codependente, Egoista Se doa demais", "d": "", "df": ""}, "20": {"n": "O TRANQUILO", "c": "", "l": "Presença Calma, Contemplação Alquimia, Clareza Íntegra, Consciência elevada Autoconfiante, Confiança na ordem Está presente e fala a, Divina sua verda", "s": "Preguiçosa Superficial Se auto pressiona, Ausente Frustrada Dificuldade, Agitada em enxergar o, Insegura problema do outro., Nega sua intuição", "d": "", "df": ""}, "21": {"n": "O GERENTE", "c": "Tribal do Ego", "l": "Força de vontade Coragem, Autoconfiante Nobreza, Penetrante Assume o comando e, Autoridade gerencia recursos., Valor", "s": "Submissa Controladora Vítima de uma, Excesso de necessidade de, autoconfiança controlar., Não gosta de ser Não se sente digna e, mandada. apoiada.", "d": "", "df": ""}, "22": {"n": "O CONVITE", "c": "Individual de Conhecimento", "l": "Graça Oferece beleza e, Charme suporte/compreensão, Aceitação emocional a si mesma e aos, Convidativa outros., Expressão Guardiã de memórias, Cria esp", "s": "Mal-humorada Nervosa Retêm ou sufoca sua, em relação à franqueza paixão., Inapropriada Temperamental, Medo Pressão para se, Deselegante expressar.", "d": "", "df": ""}, "23": {"n": "O LINGUISTA", "c": "Individual de Conhecimento", "l": "Palavras Simplicidade, Traduz insights Direta Espontânea, Fala a verdade, Singular Transformação, Traz soluções Articula ideias inovadoras, Articulada", "s": "Complexidade Falar antes da hora, Fragmentada Amargura Ansiedade e pressão, Silenciosa para compartilhar o, Impulsividade que você sabe., Ignorância", "d": "", "df": ""}, "24": {"n": "O INVENTOR", "c": "Individual de Conhecimento", "l": "Voz da Razão Incentivadora, Silenciosa Revelações Racionaliza sabiamente, Pensadora Individual Renovação mental, Engenhosa Inteligente Poder de criar,", "s": "Melancólica Ansiosa, Mente hiperativa Presa a Se recusa a mudar, padrões antigos. Medo de não saber", "d": "", "df": ""}, "25": {"n": "O CURANDEIRO", "c": "Individual Centrado", "l": "Inocente Gentil, Amor universal e Honesta, incondicional Atitude jovem, Fé no Divino Aceitação Empodera, Confia na vida outros a amar a vida., Vive de", "s": "Ignorante Constringida, Fria Egóica, Ansiosa Medo e desconfiança, Desconectada da vida., Julga a si mesma e aos, outros.", "d": "", "df": ""}, "26": {"n": "O HIPNOTIZADOR", "c": "Tribal do Ego", "l": "Persuasiva Íntegra, Vendas Otimista, Sabe vender Corajosa, Brincalhona Sincera Confiante, Engenhosa Astúcia, Vê um futuro melhor.", "s": "Manipuladora Orgulhosa, Prepotente Controla os outros para, Egóica seu próprio ganho., Escassa, Desonesta", "d": "", "df": ""}, "27": {"n": "O CUIDADOR", "c": "Tribal de Defesa", "l": "Cuidadora Altruísta, Transborda Generosa, abundância Protetora, Nutrir Calorosa, Compaixão Responsável, Confiante Extremamente auto, responsável.", "s": "Codependência Culpa Baixa autoestima Doa, Cuida excessivamente pensando no próprio, Egóica benefício, Abnegação Se sacrifica demais, pelos outros.", "d": "", "df": ""}, "28": {"n": "O HERÓI", "c": "Individual de Conhecimento", "l": "Propósito Dom da, Corajosa transformação, Profunda Entende a, Imortalidade Psique transitoriedade da, Totalidade vida.", "s": "Falta de propósito Vazio Se arrisca em excesso, interno Melancólica, Jogos de azar \"Oca\" por dentro, Se recusa a agir Medo de Medo de suas sombras, fa", "d": "", "df": ""}, "29": {"n": "O COMPROMETIDO", "c": "Coletivo de Detecção", "l": "Devota Profunda, Prontidão Persistente, Tantra Ousada, Confiante Envolvente Dedicada às coisas, Transformação que importam e que te, iluminam.", "s": "Indecisa Frustrada, Super comprometida Sem comprometimento, Não confiável Insensível, Sem convicção Esgotada Se deixa levar pela opinião, Desiste faci", "d": "", "df": ""}, "30": {"n": "O IGNITOR", "c": "Coletivo de Detecção", "l": "Apaixonada Profunda Determinada, Impulsiva Sensível, Ousada Intensa nos desejos e, Leve emoções., Desejo", "s": "Nunca satisfeita Impaciente, Excessiva Perde a fé na vida, Séria Desemparada, Esgotada Se joga sem cuidado", "d": "", "df": ""}, "31": {"n": "O VISIONÁRIO", "c": "Coletivo de Lógica", "l": "Influente Humilde, Líder Conduz, Visionária Influencia, Visão coletiva intencionalmente os, Constante outros em uma visão, Tranquila justa., Dá o cami", "s": "Arrogante Medo de liderar, Zomba dos outros Força a assumir a, Procrastinadora liderança., Manipuladora", "d": "", "df": ""}, "32": {"n": "O GUARDIÃO", "c": "Tribal do Ego", "l": "Sabe seu lugar no todo Consideração, Mudança Sucesso, Detecta talentos Prevê fatos, Consistente Ancestralidade, Sábia Sente e lidera uma, Intuitiva mu", "s": "Medo do fracasso Isolada, Deslocada Desarticulada Vive sozinha, Vítima da própria ideia, Pânico de sucesso., Fracasso, Codependente", "d": "", "df": ""}, "33": {"n": "A ALMA VELHA", "c": "Coletivo de Detecção", "l": "Sábia Mindfullness, Retiro Memórias, Conta histórias Guardiã de saberes, Contemplação Compartilha lições do, Curandeira passado., Reclusa, Privacidade", "s": "Esquecida Fechada, Censura Desempoderada, Fala palavras negativas Vitimização, sobre si mesma e sobre a Compartilha narrativas, vida. enraizadas na do", "d": "", "df": ""}, "34": {"n": "A CASA DE FORÇA", "c": "", "l": "Poder pessoal Auto Autoconfiante, capacitada Auto empoderada, Independente Movimento, Impressionante Reserva inesgotável de, Energia soberana carisma.", "s": "Modesta demais Sem Falta de visão clara, poder Egocêntrica, Força as coisas Soberania, Não sabe a diferença Sempre muito ocupada, entre poder e forçar", "d": "", "df": ""}, "35": {"n": "A EXPLORADORA", "c": "Coletivo de Detecção", "l": "Vivaz Milagres, Corajosa Fome de vida, Mudança Estável, Aventureira Compartilha sua, Experiências sabedoria através de, emocionais suas aventuras.", "s": "Entediada Excesso de estímulos, Fome insaciável de Impaciente, novas experiências. Agitada, Sempre precisando de, mudança", "d": "", "df": ""}, "36": {"n": "A TEMPESTADE", "c": "Coletivo de Detecção", "l": "Energia sexual Vivaz, Inteligente Compaixão, Compassiva Gentil, Profunda Sabedoria emocional, Inspiradora", "s": "Nervosa Oprimida, Propensa a crises Negligente, emocionais Turbulenta, Emocionalmente Inquieta, indisponível Cria drama e caos.", "d": "", "df": ""}, "37": {"n": "A BONDOSA", "c": "Tribal do Ego", "l": "Energia materna Comunicação saudável, Benevolente Gentil Igualitária, Carinhosa Sensível, Calorosa Conexão sexual, Família Mantêm limites fortes, Afet", "s": "Fraca Controladora, Cruel Excessivamente Submissa, sentimental Procura a paz fora de, si mesma.", "d": "", "df": ""}, "38": {"n": "O DESAFIADOR", "c": "Individual de Conhecimento", "l": "Independente Digna de respeito, Trabalhadora da luz Discernimento, Corajosa Perseverante Luta por coisas que tem, Faz as coisas terem significado e pr", "s": "Melancólica Derrotista Compra batalhas que, Agressiva não são suas., Insatisfeita Luta por lutar sem ter, Teimosa clareza do porquê.", "d": "", "df": ""}, "39": {"n": "O LIBERTADOR", "c": "Individual de Conhecimento", "l": "Dinâmica Catalisa liberação, Única Provoca os outros a, Sedutora Abundante assumirem a, Espiritual responsabilidade., Clareza É força de, transformaçã", "s": "Oprimida Assume, Provocativa responsabilidade pelos, Medíocre outros., Carente Vítima de oscilação de, Compras excessivas humor., Medo da falta", "d": "", "df": ""}, "40": {"n": "O SOLITÁRIO", "c": "Tribal do Ego", "l": "Descontração Ética, Equilíbrio Trabalho ético, Coração Arquétipo do pai, Amor Auto nutrição, Confiável Generosa, Relaxamento Servir a comunidade, Desc", "s": "Se doa demais Exausta, Complacente Sentimento de culpa, Força as coisas Limites fracos, acontecerem Coloca o auto valor naquilo, que faz pelos os outr", "d": "", "df": ""}, "41": {"n": "O ORIGINADOR", "c": "Coletivo de Detecção", "l": "Imaginativa Fé no tempo Divino, Esperançosa Transformação, Sonhadora Líder, Manifestadora Visionária, Original Intui o que está por vir e, Fome de sen", "s": "Imagina os piores Hiperativa, cenários Inquieta, Nega seu poder criativo Vive no mundo da, Medo do julgamento fantasia.", "d": "", "df": ""}, "42": {"n": "O FINALIZADOR", "c": "Coletivo de Detecção", "l": "Atenciosa Intencional Escreve a própria história, Nômade Desapegada, Ciclos de vida-morte- Cerimonialista, vida Experiências Conclusão, Sábia Fechamen", "s": "Expectativas Auto julgamento, Decepcionada Paralisa ou tem, Muito apegada dificuldade para, Auto pressão começar as coisas., Confusa", "d": "", "df": ""}, "43": {"n": "O DISRUPTOR", "c": "Individual de Conhecimento", "l": "Confia na sabedoria Revolucionária, interna Audição Individual, seletiva Canal de insights, Escuta interior Auto consciência, Criativa Canaliza com, Ú", "s": "Não quer escutar os Precisa estar certa, outros Frustração, Preocupada Barulhenta Desesperada Ansiosa, Melancólica Teimosa", "d": "", "df": ""}, "44": {"n": "O FAREJADOR", "c": "Tribal do Ego", "l": "Relacionamentos Conexão, cármicos Reconhece talentos, Trabalho em equipe Habilidade para ler, Vê padrões do pessoas., passado Transformação, Possibili", "s": "Padrões que causam Engana os outros, distorção Desconfiança Medo que o passado, Julga errado se repita., Se sente paralisado", "d": "", "df": ""}, "45": {"n": "O PRÓSPERO", "c": "Tribal do Ego", "l": "Líder/influência em Abundante em recursos, finanças Bem-estar, Dinheiro Cria prosperidade, Alocar pessoas Distribui recursos, Boa vontade Generosa", "s": "Insegura Ostentação, Tímida Não consegue lidar, Dominante com autoridades., Liderança egoísta, Escassez", "d": "", "df": ""}, "46": {"n": "O SENSUAL", "c": "Coletivo de Detecção", "l": "Amor pelo corpo Êxtase Personificação, Aproveita a vida da sensualidade, Prazer Serena, Deleite Sortuda, Deitar-se com a vida Corporificação, Aventure", "s": "Séria demais Odeia o corpo, Frígida Não se auto nutre Cria, Frívola caos na vida, Seriedade na vida Desconexão com o, Compulsão corpo.", "d": "", "df": ""}, "47": {"n": "O ALQUIMISTA", "c": "Coletivo de Detecção", "l": "Transmutação Imaginativa, Insights Fé, Karma Realizações, Mutação Entrega, Mística Espera por clareza, Corajosa Transforma dor em, Saltos quânticos ou", "s": "Oprimida Desesperada Mente fechada, Dogmática \"Quadrada\", Vítima Desesperançosa Não acredita em si, mesma., Muito mental", "d": "", "df": ""}, "49": {"n": "O REVOLUCIONÁRIO", "c": "Tribal do Ego", "l": "Apaixonada Valores, Justa É líder nos, Conectada relacionamentos, Leal Traz paz através da, Revolucionária revolução, Transformação Cria harmonia", "s": "Rejeita seus valores Desiste cedo demais, Dormente Cria drama e conflito, Imóvel Quer que todos a, Reativa obedeçam., Evita intimidade", "d": "", "df": ""}, "50": {"n": "O MAESTRO", "c": "Tribal de Defesa", "l": "Moralidade Equilíbrio, Ordem Bússola moral, Responsabilidade Intuição é seu faro, Confiante Harmonia, Vive seus valores Música, Intuitiva Empodera o c", "s": "Irresponsável Corrupta, Sobrecarregada Não é íntegra com, Corrompida seus valores., Não confiável", "d": "", "df": ""}, "51": {"n": "O TROVÃO", "c": "Tribal do Ego", "l": "Corajosa Forte, Independente Poderosa, Inicia Amor incondicional, Criativa Empodera, Disruptiva Desperta, Competidora saudável", "s": "Pessimista Hostil, Insistente Covarde, Agitada Choque que gera, Ansiosa ruptura, Provocativa Desconectada do, divino", "d": "", "df": ""}, "52": {"n": "A MONTANHA", "c": "Coletivo de Lógica", "l": "Estabiliza Paciente Moderadora, Aterrada Concentrada, Focada Flui, Servir Fluxo e refluxo., Quieta, Quietude", "s": "Inquieta Não se move ao novo., Prisioneira Escassa, Estressada Força as coisas a, Excessiva em tudo acontecerem, ou se, Deixa a opressão apressa e se ", "d": "", "df": ""}, "53": {"n": "O INICIADOR", "c": "Coletivo de Detecção", "l": "Inicia Intensa, Vê oportunidades Abundante, Expansora Serena, Iniciadora Navega por novos, Força de vida começos.", "s": "Imatura Zona de conforto, Impotente Inconstante Fracasso, Incapacidade de iniciar Se sente pressionada a, ou concluir as coisas. iniciar.", "d": "", "df": ""}, "54": {"n": "O CONQUISTADOR", "c": "Tribal do Ego", "l": "Motivadora Focada, Sucesso Domínio material, Ambição Autoconfiante Inspiradora Aspiração, Próspera Amor por processos., Crescimento espiritual", "s": "Sem ambição Manipuladora, Gananciosa Amargurada, Ingrata Só pensa em si, Coloca muito foco no própria., dinheiro.", "d": "", "df": ""}, "55": {"n": "O EXPANSOR", "c": "Individual de Conhecimento", "l": "Abundante Criativa, Espírito Sem limitações, Liberdade Experiencia a, Generosa Romântica espiritualidade através, Emocional das emoções., Fé", "s": "Super estimulada Não confia na fonte, Indecisa Dramática, Medo da falta Distraída Vazio, Vitimização Presa em ciclos de, esperança e dor.", "d": "", "df": ""}, "56": {"n": "O COMEDTIANTE", "c": "Coletivo de Detecção", "l": "Contadora de Riso, histórias Sensações, Aventureira Sensualidade, Educadora Humor, Entretêm Enriquece a vida do outro., Vivaz Pessoalmente empoderada,", "s": "Superestimulada Inquieta, Distraída Esgota a energia dos, Perdida outros., Se prende a histórias Exagera nas próprias, limitantes. histórias.", "d": "", "df": ""}, "57": {"n": "O INTUITIVO", "c": "", "l": "Clarividente, Intuitiva, Suavidade Momento, Instintiva, presente Habilidades, Clareza, psíquicas, Conhecimento", "s": "Se sente paralisada, Inquieta, Melancólica, Hesitante, Falta de confiança na, Indecisa, vida e em si mesma., Impetuosa", "d": "Suavidade Momento Instintiva presente Habilidades Clareza psíquicas", "df": ""}, "58": {"n": "O VITAL", "c": "Coletivo de Lógica", "l": "Vitalidade Contentamento, Força vital Serviço, Maestria Mente Lógica, Correção Exuberante, Cultiva alegria Cura, Transformação Energia de vida", "s": "Insatisfação Estresse, Ingrata Pressão, Nega a alegria Busca não saudável por, Culpa melhoramento., Vergonha Perfeccionismo, Busca alegria fora de si", "d": "", "df": ""}, "59": {"n": "A SIRENE", "c": "Tribal de Defesa", "l": "Aura Sensual Transparência, Intimidade Conexão Vulnerável Abundante, Presença Penetrante, Magnética Honesta Mestre em sexualidade.", "s": "Desonesta Medo da falta, Excluída Não se permite ser, Vítima de trauma vulnerável, Luta para sobreviver Relacionamentos, Codependente insustentáveis, ", "d": "", "df": ""}, "60": {"n": "O MÁGICO", "c": "Individual de Conhecimento", "l": "Magia Criativa, Inovação Manifestação Otimista Transformação, Mudança Realismo mágico, Quebra as regras (sonhadora saudável), Superar obstáculos Leis ", "s": "Limitação Rígida, Não estruturada Controladora, Não permite o Fica na zona de conforto, crescimento de algo. Vítima de leis e regras", "d": "", "df": ""}, "61": {"n": "O MÍSTICO", "c": "Individual de Conhecimento", "l": "Buscadora da verdade Entende os mistérios, Original Canalizadora da vida, Inspiração Verdade interior, Misticismo, Autêntica", "s": "Psicose Caótica, Ingrata Amargurada, Racionaliza demais Vitimização, Fanática Desencantada com a, Questiona seu lugar na vida., vida", "d": "", "df": ""}, "62": {"n": "O ORGANIZADOR", "c": "Coletivo de Lógica", "l": "Explicação Precisão, Linguagem Organiza ideias, penetrante Conceitos Detalhista, Fatos Lógica, Simplicidade Clareza, Compartilhar fatos Comunica com, ", "s": "Excesso de racionalidade Pedante (exibe conhecimento, Obsessiva por detalhes que não possui), Escrupulosa Preocupada, Medo Não deixa \"fluir\", Planeja ", "d": "", "df": ""}, "63": {"n": "O DETETIVE", "c": "Coletivo de Lógica", "l": "Investigadora Solucionadora de problemas, Verdade Compreensão Usa a dúvida como uma porta, Questionamento de entrada para, saudável possibilidades., P", "s": "Dúvida Incerteza, Suspeita Perda de curiosidade, Lógica demais Culpa coisas externas, Luta pela certeza pela própria dúvida., Cética", "d": "", "df": ""}, "64": {"n": "O METAFÍSICO", "c": "Coletivo de Detecção", "l": "Pensadora Abstrato, Visual Imaginativa e criativa, Artista/Artística para transcender a, Estética confusão., Iluminação Espiritual, Liberdade criativa", "s": "Confusão Desiste de sonhar, Pressão mental Se preocupa muito com, Caótica o “como\" suas ideias se, Desesperada tornarão realidade., Inadequada, Por am", "d": "Você está aqui para.. REFLETIR e REVELAR a verdade. O segredo do seu magnestismo está em... Estar vivendo o momento presente e se permite ser diferente a cada dia, dançando com o que a vida te traz e seguindo seus desejos no", "df": ""}};
@@ -937,6 +1198,12 @@ function extractPlanetaryGates(hdData) {
 
 // ─── INIT ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // ─── VERIFICAR AUTENTICAÇÃO PRIMEIRO ───
+  if (!checkAuth()) {
+    showLoading('Iniciando...', '', 1000, () => showScreen('screen-auth'));
+    return;
+  }
+  showLogoutButton();
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
@@ -1116,6 +1383,7 @@ async function startSession() {
 // ─── CHAT ─────────────────────────────────────────────────
 async function initChat() {
   showScreen('screen-chat');
+  showLogoutButton();
   updateHeader();
   buildProfilePanel();
   updateTrackerUI();
