@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Serena</title>
+<link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Work+Sans:ital,wght@0,200;0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --milky: #9B7D61;
+    --peach: #DAA38F;
+    --wheat: #E9D7C0;
+    --eucalyptus: #92ADA4;
+    --cream: #FED8A6;
+    --dark: #2C2017;
+    --white: #FFFFFF;
+    --glass: rgba(255,255,255,0.72);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    background: var(--wheat);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* LOGIN */
+  #screen-login {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.25rem;
+    background: linear-gradient(160deg, var(--wheat) 0%, var(--cream) 55%, rgba(218,163,143,0.4) 100%);
+  }
+  .auth-card {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    border: 1px solid rgba(155,125,97,0.14);
+    box-shadow: 0 20px 60px rgba(44,32,23,0.07);
+    text-align: center;
+  }
+  .auth-card h2 {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.5rem;
+    color: var(--milky);
+    margin-bottom: 0.4rem;
+  }
+  .auth-card .subtitle {
+    font-size: 0.85rem;
+    color: rgba(44,32,23,0.55);
+    line-height: 1.7;
+    margin-bottom: 1.8rem;
+  }
+  .card-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 6px 20px rgba(155,125,97,0.28);
+  }
+  .field { margin-bottom: 1.1rem; text-align: left; }
+  .field label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--milky);
+    font-weight: 400;
+    margin-bottom: 0.45rem;
+  }
+  .field input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.75);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
+    font-size: 0.9rem;
+    color: var(--dark);
+    outline: none;
+    transition: all 0.22s;
+    text-align: center;
+  }
+  .field input:focus {
+    border-color: var(--milky);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(155,125,97,0.09);
+  }
+  .btn {
+    width: 100%;
+    padding: 0.95rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Aboreto', cursive;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    transition: all 0.28s;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white;
+    box-shadow: 0 4px 18px rgba(155,125,97,0.28);
+    margin-top: 0.5rem;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .auth-error {
+    background: rgba(218,163,143,0.2);
+    border: 1.5px solid var(--peach);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: var(--dark);
+    display: none;
+  }
+  .auth-error.visible { display: block; }
+  .note {
+    font-size: 0.72rem;
+    color: rgba(44,32,23,0.38);
+    text-align: center;
+    margin-top: 1.1rem;
+  }
+  .note a { color: var(--milky); text-decoration: underline; }
+
+  /* DASHBOARD */
+  #screen-admin {
+    min-height: 100vh;
+    flex-direction: column;
+    background: var(--wheat);
+  }
+  .admin-header {
+    padding: 1.25rem 1.5rem;
+    background: rgba(255,255,255,0.8);
+    border-bottom: 1px solid rgba(155,125,97,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-header h1 {
+    font-family: 'Aboreto', cursive;
+    font-size: 1.1rem; color: var(--milky);
+    letter-spacing: 0.1em;
+  }
+  .admin-back {
+    background: none; border: 1px solid rgba(155,125,97,0.2);
+    border-radius: 8px; padding: 0.4rem 0.8rem;
+    font-size: 0.72rem; color: var(--milky);
+    cursor: pointer; font-family: 'Work Sans', sans-serif;
+  }
+  .admin-back:hover { background: rgba(155,125,97,0.06); }
+  .admin-body { padding: 1.5rem; max-width: 960px; margin: 0 auto; width: 100%; }
+  .admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem; margin-bottom: 1.5rem;
+  }
+  .admin-stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    border: 1px solid rgba(155,125,97,0.1);
+  }
+  .admin-stat-label {
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(44,32,23,0.4);
+    margin-bottom: 0.3rem;
+  }
+  .admin-stat-value {
+    font-size: 1.6rem; font-weight: 400; color: var(--dark);
+  }
+  .admin-section-title {
+    font-family: 'Aboreto', cursive;
+    font-size: 0.8rem; color: var(--milky);
+    letter-spacing: 0.1em; margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .admin-table-wrap {
+    background: white; border-radius: 14px;
+    border: 1px solid rgba(155,125,97,0.1);
+    overflow-x: auto;
+  }
+  .admin-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .admin-table th {
+    text-align: left; padding: 0.7rem 1rem;
+    font-weight: 400; font-size: 0.65rem;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(44,32,23,0.4);
+    border-bottom: 1px solid rgba(155,125,97,0.1);
+  }
+  .admin-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(155,125,97,0.05);
+    color: var(--dark);
+  }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .status-badge {
+    display: inline-block; padding: 0.15rem 0.5rem;
+    border-radius: 6px; font-size: 0.68rem;
+  }
+  .status-badge.active { background: rgba(146,173,164,0.2); color: #3a7d6a; }
+  .status-badge.canceled { background: rgba(218,163,143,0.2); color: #a0522d; }
+  .status-badge.expired { background: rgba(44,32,23,0.08); color: rgba(44,32,23,0.5); }
+  .status-badge.past_due { background: rgba(254,216,166,0.3); color: #8b6914; }
+  .admin-action-bar {
+    display: flex; gap: 0.5rem; align-items: flex-end;
+    flex-wrap: wrap; margin-bottom: 1rem;
+  }
+  .admin-input {
+    padding: 0.55rem 0.8rem;
+    border: 1.5px solid rgba(155,125,97,0.18);
+    border-radius: 10px; font-size: 0.82rem;
+    font-family: 'Work Sans', sans-serif;
+    background: white; outline: none; color: var(--dark);
+  }
+  .admin-input:focus { border-color: var(--milky); }
+  .admin-btn {
+    padding: 0.55rem 1rem;
+    background: linear-gradient(135deg, var(--milky), var(--peach));
+    color: white; border: none; border-radius: 10px;
+    font-size: 0.75rem; cursor: pointer;
+    font-family: 'Work Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .admin-btn:hover { transform: translateY(-1px); }
+  .admin-btn.secondary {
+    background: none; color: var(--milky);
+    border: 1px solid rgba(155,125,97,0.2);
+  }
+  .admin-msg {
+    padding: 0.6rem 1rem;
+    border-radius: 10px; font-size: 0.78rem;
+    margin-top: 0.75rem; display: none;
+  }
+  .admin-msg.visible { display: block; }
+  .admin-msg.success { background: rgba(146,173,164,0.15); color: #3a7d6a; }
+  .admin-msg.error { background: rgba(218,163,143,0.15); color: #a0522d; }
+  .admin-loading {
+    text-align: center; padding: 3rem;
+    color: rgba(44,32,23,0.4); font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<div id="screen-login" class="screen active">
+  <div class="auth-card">
+    <div class="card-icon">⚙</div>
+    <h2>Painel Admin</h2>
+    <p class="subtitle">Acesso restrito — Serena / Vida Autoral</p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="admin-email" placeholder="admin@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" id="admin-password" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')loginAdmin()">
+    </div>
+    <button class="btn" id="btn-login" onclick="loginAdmin()">Entrar ✦</button>
+    <div id="login-error" class="auth-error"></div>
+    <p class="note" style="margin-top:1.5rem">
+      <a href="/">← Voltar para Serena</a>
+    </p>
+  </div>
+</div>
+
+<div id="screen-admin" class="screen">
+  <div class="admin-header">
+    <h1>✦ Painel Serena</h1>
+    <div style="display:flex;gap:0.5rem">
+      <button class="admin-back" onclick="loadDashboard()">Atualizar</button>
+      <button class="admin-back" onclick="logout()">Sair</button>
+    </div>
+  </div>
+  <div class="admin-body">
+    <div id="admin-content">
+      <div class="admin-loading">Carregando dados...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ADMIN_KEY = 'serena_admin_v1';
+let adminToken = '';
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── CHECK SAVED SESSION ───
+(function() {
+  const saved = localStorage.getItem(ADMIN_KEY);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.token && Date.now() - data.loginAt < 86400000) {
+        adminToken = data.token;
+        showScreen('screen-admin');
+        loadDashboard();
+        return;
+      }
+    } catch(e) {}
+    localStorage.removeItem(ADMIN_KEY);
+  }
+})();
+
+// ─── LOGIN ───
+async function loginAdmin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const btn = document.getElementById('btn-login');
+  const errorEl = document.getElementById('login-error');
+
+  errorEl.classList.remove('visible');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      adminToken = data.token;
+      localStorage.setItem(ADMIN_KEY, JSON.stringify({
+        token: data.token,
+        loginAt: Date.now()
+      }));
+      showScreen('screen-admin');
+      loadDashboard();
+    } else {
+      errorEl.textContent = data.error || 'Credenciais inválidas';
+      errorEl.classList.add('visible');
+      btn.disabled = false;
+      btn.textContent = 'Entrar ✦';
+    }
+  } catch(e) {
+    errorEl.textContent = 'Erro de conexão. Tente novamente.';
+    errorEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Entrar ✦';
+  }
+}
+
+function logout() {
+  localStorage.removeItem(ADMIN_KEY);
+  adminToken = '';
+  showScreen('screen-login');
+}
+
+// ─── DASHBOARD ───
+async function loadDashboard() {
+  const content = document.getElementById('admin-content');
+  content.innerHTML = '<div class="admin-loading">Carregando dados...</div>';
+
+  try {
+    const res = await fetch('/api/admin-stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + adminToken
+      },
+      body: JSON.stringify({ action: 'stats' })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderDashboard(data);
+  } catch(e) {
+    content.innerHTML = '<div class="admin-loading">Erro: ' + e.message + '</div>';
+  }
+}
+
+function renderDashboard(data) {
+  const s = data.summary;
+  const u = data.usage;
+  const content = document.getElementById('admin-content');
+
+  content.innerHTML = `
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card"><div class="admin-stat-label">Total assinantes</div><div class="admin-stat-value">${s.total}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Ativas</div><div class="admin-stat-value" style="color:#3a7d6a">${s.active}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Expiradas</div><div class="admin-stat-value" style="color:rgba(44,32,23,0.4)">${s.expired}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Canceladas</div><div class="admin-stat-value" style="color:#a0522d">${s.canceled}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Conversas</div><div class="admin-stat-value">${u.totalConversations}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Mensagens</div><div class="admin-stat-value">${u.totalMessages}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Ativas 7d</div><div class="admin-stat-value">${u.activeUsers7d}</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Pgto pendente</div><div class="admin-stat-value" style="color:#8b6914">${s.pastDue}</div></div>
+    </div>
+
+    <div class="admin-section-title">Gerenciar acesso</div>
+    <div class="admin-action-bar">
+      <input class="admin-input" id="manage-email" placeholder="email@aluna.com" style="flex:1;min-width:200px">
+      <input class="admin-input" id="manage-days" placeholder="dias" style="width:70px" value="60">
+      <button class="admin-btn" onclick="manageAccess('add')">Liberar</button>
+      <button class="admin-btn secondary" onclick="manageAccess('extend')">Estender</button>
+      <button class="admin-btn secondary" onclick="manageAccess('remove')">Remover</button>
+    </div>
+    <div class="admin-msg" id="manage-msg"></div>
+
+    <div class="admin-section-title">Assinantes</div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead><tr>
+          <th>Email</th><th>Nome</th><th>Status</th><th>Produto</th><th>Dias</th><th>Evento</th>
+        </tr></thead>
+        <tbody>
+          ${data.subscribers.map(sub => `<tr>
+            <td>${sub.email}</td>
+            <td>${sub.name || '—'}</td>
+            <td><span class="status-badge ${sub.status}">${sub.status}</span></td>
+            <td>${sub.productName || '—'}</td>
+            <td>${sub.daysRemaining !== null ? sub.daysRemaining + 'd' : '∞'}</td>
+            <td style="font-size:0.7rem;color:rgba(44,32,23,0.4)">${sub.lastEvent || '—'}</td>
+          </tr>`).join('')}
+          ${data.subscribers.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:rgba(44,32,23,0.3);padding:1.5rem">Nenhum assinante</td></tr>' : ''}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function manageAccess(action) {
+  const email = document.getElementById('manage-email').value.trim();
+  const days = parseInt(document.getElementById('manage-days').value) || 60;
+  const msgEl = document.getElementById('manage-msg');
+
+  if (!email) {
+    msgEl.className = 'admin-msg visible error';
+    msgEl.textContent = 'Digite um email';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/admin-subscribers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + adminToken
+      },
+      body: JSON.stringify({ action, email, days })
+    });
+    const data = await res.json();
+    msgEl.className = 'admin-msg visible ' + (data.success ? 'success' : 'error');
+    msgEl.textContent = data.message || JSON.stringify(data);
+    setTimeout(() => loadDashboard(), 500);
+  } catch(e) {
+    msgEl.className = 'admin-msg visible error';
+    msgEl.textContent = 'Erro: ' + e.message;
+  }
+}
+</script>
+</body>
+</html>
