@@ -1,9 +1,9 @@
 // ─── MINI CLIENTE REDIS (UPSTASH REST API) ───────────────
-// Funciona sem npm install — usa fetch direto na API REST
-// Precisa das env vars: UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN
+// Funciona sem npm install — usa fetch direto
+// Env vars: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
 // ──────────────────────────────────────────────────────────
 
-async function redisCommand(...args) {
+export async function redisCommand(...args) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
