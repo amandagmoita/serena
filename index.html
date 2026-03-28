@@ -996,7 +996,11 @@ async function verifyAccess() {
       setTimeout(() => proceedToApp(), 1500);
     } else {
       let msg = data.message || 'Acesso não encontrado.';
-      msg += '<br><br><a href="https://pay.hotmart.com/R104334883O" target="_blank">Garanta seu acesso à Serena →</a>';
+      if (data.reason === 'expired' || data.reason === 'canceled') {
+        msg += '<br><br><a href="https://pay.hotmart.com/X105124340T" target="_blank">Renovar acesso à Serena →</a>';
+      } else {
+        msg += '<br><br><a href="https://pay.hotmart.com/R104334883O" target="_blank">Garanta seu acesso à Serena →</a>';
+      }
       errorEl.innerHTML = msg;
       errorEl.classList.add('visible');
       btn.disabled = false;
