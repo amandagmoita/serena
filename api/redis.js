@@ -1,13 +1,22 @@
 // ─── MINI CLIENTE REDIS (UPSTASH REST API) ───────────────
-// Funciona sem npm install — usa fetch direto
-// Env vars: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// Compatível com qualquer nome de variável do Upstash/Vercel KV
 // ──────────────────────────────────────────────────────────
 
 export async function redisCommand(...args) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL
+    || process.env.KV_REST_API_URL
+    || process.env.KV_URL
+    || process.env.REDIS_URL;
 
-  const res = await fetch(`${url}`, {
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+    || process.env.KV_REST_API_TOKEN
+    || process.env.KV_REST_API_READ_ONLY_TOKEN;
+
+  if (!url || !token) {
+    throw new Error('Redis não configurado — variáveis de ambiente não encontradas');
+  }
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
