@@ -1562,6 +1562,7 @@ async function forgotPassword() {
 }
 
 function proceedToApp() {
+  // Tentar carregar do localStorage primeiro (mesmo dispositivo)
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
@@ -1574,6 +1575,62 @@ function proceedToApp() {
       }
     } catch(e) {}
   }
+  // Se não tem no localStorage, tentar carregar do servidor (outro dispositivo)
+  loadProfileFromServer();
+}
+
+async function saveProfileToServer() {
+  const email = getAuthEmail();
+  if (!email || !user.name || !user.hdData) return;
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save-profile',
+        email,
+        profile: {
+          name: user.name, birthDate: user.birthDate, birthDateRaw: user.birthDateRaw,
+          birthTime: user.birthTime, birthCity: user.birthCity, timezone: user.timezone,
+          context: user.context, type: user.type, authority: user.authority,
+          strategy: user.strategy, profile: user.profile, definition: user.definition,
+          signature: user.signature, notSelf: user.notSelf,
+          incarnationCross: user.incarnationCross, channels: user.channels,
+          definedCenters: user.definedCenters, openCenters: user.openCenters,
+          planets: user.planets, sunGateInfo: user.sunGateInfo,
+          venusCInfo: user.venusCInfo, venusUInfo: user.venusUInfo,
+          channelDescs: user.channelDescs, hdData: user.hdData
+        }
+      })
+    });
+    console.log('[Profile] Salvo no servidor');
+  } catch(e) { console.warn('Save profile failed:', e); }
+}
+
+async function loadProfileFromServer() {
+  const email = getAuthEmail();
+  if (!email) {
+    showLoading('Iniciando...', '', 1000, () => showScreen('screen-onboarding'));
+    return;
+  }
+  showLoading('Carregando seu perfil...', '', 0, () => {});
+  try {
+    const res = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'load-profile', email })
+    });
+    const data = await res.json();
+    if (data.profile && data.profile.name && data.profile.hdData) {
+      user = data.profile;
+      hdData = data.profile.hdData;
+      // Salvar no localStorage local também
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      showLoading('Bem-vinda de volta, ' + user.name.split(' ')[0] + '...', '', 1500, initChat);
+      return;
+    }
+  } catch(e) { console.warn('Load profile from server failed:', e); }
+  // Se não encontrou perfil no servidor, mostrar onboarding
   showLoading('Iniciando...', '', 1000, () => showScreen('screen-onboarding'));
 }
 
@@ -1640,6 +1697,7 @@ function showLogoutButton() {
 // ─── SIDEBAR DE CONVERSAS ────────────────────────────────
 let currentConversationId = null;
 let autoSaveTimeout = null;
+let lastConversationsList = [];
 
 function generateConvoId() {
   return 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
@@ -1666,7 +1724,8 @@ async function loadConversationList() {
       body: JSON.stringify({ action: 'list', email })
     });
     const data = await res.json();
-    renderSidebarList(data.conversations || []);
+    lastConversationsList = data.conversations || [];
+    renderSidebarList(lastConversationsList);
   } catch(e) { console.warn('Load convos failed:', e); }
 }
 
@@ -2056,6 +2115,8 @@ async function startSession() {
     user.channelDescs = channelDescs;
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    // Salvar perfil no servidor (vinculado ao email)
+    saveProfileToServer();
     history = [];
 
     document.getElementById('loading-label').textContent = `${TR.typeEmoji[user.type] || '✦'} ${user.type}`;
@@ -2078,10 +2139,18 @@ async function initChat() {
   updateHeader();
   buildProfilePanel();
   updateTrackerUI();
-  // Inicializar sistema de conversas
-  currentConversationId = generateConvoId();
-  loadConversationList();
-  await getWelcome();
+  
+  // Carregar lista de conversas
+  await loadConversationList();
+  
+  if (lastConversationsList.length > 0 && !user.firstTime) {
+    // Restaurar última conversa
+    await loadConversation(lastConversationsList[0].id);
+  } else {
+    // Nova conversa
+    currentConversationId = generateConvoId();
+    await getWelcome();
+  }
 }
 
 function updateHeader() {
@@ -2189,6 +2258,7 @@ async function getWelcome() {
 
   user.firstTime = false;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  saveProfileToServer();
 }
 
 function showOptionButtons() {
