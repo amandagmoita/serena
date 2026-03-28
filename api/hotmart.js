@@ -4,7 +4,7 @@
 
 import { redisGet, redisSet } from './redis.js';
 
-const MAX_ACCESS_DAYS = 365;
+const MAX_ACCESS_DAYS = 60;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
