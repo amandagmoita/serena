@@ -242,6 +242,7 @@
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
+    overflow: hidden;
     background: linear-gradient(180deg, var(--wheat) 0%, rgba(233,215,192,0.6) 100%);
   }
   .chat-header {
@@ -826,9 +827,10 @@
   .auth-logout:hover { background: rgba(155,125,97,0.1); }
 
   /* SIDEBAR */
-  .app-layout { display: flex; height: 100vh; height: 100dvh; }
+  .app-layout { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
   .sidebar {
     width: 280px; min-width: 280px;
+    height: 100%;
     background: rgba(44,32,23,0.04);
     border-right: 1px solid rgba(155,125,97,0.1);
     display: flex; flex-direction: column;
@@ -909,7 +911,7 @@
     cursor: pointer; font-size: 0.85rem; color: var(--milky);
     display: none; line-height: 1;
   }
-  .chat-area { flex: 1; min-width: 0; }
+  .chat-area { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
   /* ADMIN PANEL */
   #screen-admin {
@@ -1052,22 +1054,99 @@
   </div>
   <div class="auth-card">
     <div class="card-icon">✦</div>
-    <h2>Acesse a Serena</h2>
-    <p class="subtitle">Digite o email que você usou na compra para acessar sua guia de autoconhecimento.</p>
-    <div class="field">
-      <label>Seu email</label>
-      <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email"
-        onkeydown="if(event.key==='Enter')verifyAccess()">
+    
+    <!-- STEP 1: Email -->
+    <div id="auth-step-email">
+      <h2>Acesse a Serena</h2>
+      <p class="subtitle">Digite o email que você usou na compra do curso Vida Autoral na Hotmart.</p>
+      <div class="field">
+        <label>Seu email de compra</label>
+        <input type="email" id="auth-email" placeholder="seu@email.com" autocomplete="email"
+          onkeydown="if(event.key==='Enter')checkEmail()">
+      </div>
+      <button class="btn btn-primary" id="btn-auth-email" onclick="checkEmail()" style="margin-top:1rem">
+        Continuar ✦
+      </button>
     </div>
-    <button class="btn btn-primary" id="btn-auth" onclick="verifyAccess()" style="margin-top:1rem">
-      Entrar ✦
-    </button>
+
+    <!-- STEP 2: Create password (first time) -->
+    <div id="auth-step-register" style="display:none">
+      <h2>Crie sua senha</h2>
+      <p class="subtitle">Primeira vez por aqui! Crie uma senha para acessar a Serena.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="auth-reg-email-display" disabled style="opacity:0.6">
+      </div>
+      <div class="field">
+        <label>Crie uma senha</label>
+        <input type="password" id="auth-reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Confirme a senha</label>
+        <input type="password" id="auth-reg-password-confirm" placeholder="Digite novamente" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')registerAccount()">
+      </div>
+      <button class="btn btn-primary" id="btn-auth-register" onclick="registerAccount()" style="margin-top:1rem">
+        Criar conta ✦
+      </button>
+      <button class="btn" onclick="showAuthStep('email')" style="margin-top:0.5rem;background:none;color:var(--milky);font-size:0.75rem;letter-spacing:0.08em;">
+        ← Voltar
+      </button>
+    </div>
+
+    <!-- STEP 3: Email verification code -->
+    <div id="auth-step-verify" style="display:none">
+      <h2>Verifique seu email</h2>
+      <p class="subtitle">Enviamos um código de 6 dígitos para <strong id="auth-verify-email-display"></strong>. Confira sua caixa de entrada e spam.</p>
+      <div class="field">
+        <label>Código de verificação</label>
+        <input type="text" id="auth-verify-code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" 
+          style="text-align:center;font-size:1.3rem;letter-spacing:0.5em;"
+          onkeydown="if(event.key==='Enter')verifyCode()">
+      </div>
+      <button class="btn btn-primary" id="btn-auth-verify" onclick="verifyCode()" style="margin-top:1rem">
+        Verificar ✦
+      </button>
+      <button class="btn" id="btn-resend-code" onclick="resendCode()" style="margin-top:0.5rem;background:none;color:var(--milky);font-size:0.75rem;letter-spacing:0.08em;">
+        Reenviar código
+      </button>
+      <button class="btn" onclick="showAuthStep('email')" style="margin-top:0.25rem;background:none;color:rgba(44,32,23,0.4);font-size:0.7rem;letter-spacing:0.08em;">
+        ← Usar outro email
+      </button>
+    </div>
+
+    <!-- STEP 4: Login (returning user) -->
+    <div id="auth-step-login" style="display:none">
+      <h2>Bem-vinda de volta</h2>
+      <p class="subtitle">Digite sua senha para acessar a Serena.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="auth-login-email-display" disabled style="opacity:0.6">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="auth-login-password" placeholder="Sua senha" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')loginAccount()">
+      </div>
+      <button class="btn btn-primary" id="btn-auth-login" onclick="loginAccount()" style="margin-top:1rem">
+        Entrar ✦
+      </button>
+      <div style="display:flex;justify-content:space-between;margin-top:0.75rem;">
+        <button class="btn" onclick="forgotPassword()" style="background:none;color:var(--milky);font-size:0.7rem;letter-spacing:0.06em;padding:0.4rem 0;width:auto;">
+          Esqueci minha senha
+        </button>
+        <button class="btn" onclick="showAuthStep('email')" style="background:none;color:rgba(44,32,23,0.4);font-size:0.7rem;letter-spacing:0.06em;padding:0.4rem 0;width:auto;">
+          ← Outro email
+        </button>
+      </div>
+    </div>
+
     <div id="auth-error" class="auth-error"></div>
     <div id="auth-success" class="auth-success"></div>
     <div id="auth-warning" class="auth-warning"></div>
     <div id="auth-days" class="auth-days"></div>
     <p class="note" style="margin-top:1.5rem">
-      Ainda não tem acesso?
+      Ainda não tem o curso?
       <a href="https://pay.hotmart.com/R104334883O" target="_blank" style="color:var(--milky);text-decoration:underline;">
         Garanta sua assinatura →
       </a>
@@ -1170,75 +1249,316 @@
 // All API calls go through /api/chat serverless function
 const STORAGE_KEY = 'serena_user_v3';
 
-// ─── AUTENTICAÇÃO HOTMART ────────────────────────────────
+// ─── AUTENTICAÇÃO COM SENHA + VERIFICAÇÃO RESEND ────────
 const AUTH_KEY = 'serena_auth_v1';
+let pendingAuthEmail = '';
 
-async function verifyAccess() {
-  const emailInput = document.getElementById('auth-email');
-  const btn = document.getElementById('btn-auth');
-  const errorEl = document.getElementById('auth-error');
-  const successEl = document.getElementById('auth-success');
-  const warningEl = document.getElementById('auth-warning');
-  const daysEl = document.getElementById('auth-days');
-  const email = emailInput.value.trim().toLowerCase();
+function clearAuthMessages() {
+  ['auth-error','auth-success','auth-warning'].forEach(id => {
+    document.getElementById(id).classList.remove('visible');
+  });
+  document.getElementById('auth-days').textContent = '';
+}
 
-  errorEl.classList.remove('visible');
-  successEl.classList.remove('visible');
-  warningEl.classList.remove('visible');
-  daysEl.textContent = '';
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.innerHTML = msg;
+  el.classList.add('visible');
+}
 
+function showAuthSuccess(msg) {
+  const el = document.getElementById('auth-success');
+  el.innerHTML = msg;
+  el.classList.add('visible');
+}
+
+function showAuthStep(step) {
+  clearAuthMessages();
+  ['auth-step-email','auth-step-register','auth-step-verify','auth-step-login'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('auth-step-' + step).style.display = 'block';
+}
+
+// STEP 1: Check if email exists in Hotmart + check if already registered
+async function checkEmail() {
+  clearAuthMessages();
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
   if (!email || !email.includes('@')) {
-    errorEl.innerHTML = 'Digite um email válido.';
-    errorEl.classList.add('visible');
+    showAuthError('Digite um email válido.');
     return;
   }
-
+  
+  const btn = document.getElementById('btn-auth-email');
   btn.disabled = true;
   btn.textContent = 'Verificando...';
+  pendingAuthEmail = email;
 
   try {
     const res = await fetch('/api/verify-access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, action: 'check-email' })
     });
     const data = await res.json();
 
-    if (data.access) {
+    if (!data.hotmartAccess) {
+      // Not found in Hotmart purchases
+      let msg = data.message || 'Email não encontrado nas compras da Hotmart.';
+      msg += '<br><br>Use o mesmo email que usou na compra do curso Vida Autoral.';
+      msg += '<br><br><a href="https://pay.hotmart.com/R104334883O" target="_blank">Ainda não comprou? Garanta seu acesso →</a>';
+      showAuthError(msg);
+      btn.disabled = false;
+      btn.textContent = 'Continuar ✦';
+      return;
+    }
+
+    if (data.hasAccount) {
+      // Already registered — show login
+      document.getElementById('auth-login-email-display').value = email;
+      showAuthStep('login');
+    } else {
+      // First time — show registration
+      document.getElementById('auth-reg-email-display').value = email;
+      showAuthStep('register');
+    }
+
+    // Show days remaining if available
+    if (data.daysRemaining) {
+      document.getElementById('auth-days').textContent = data.daysRemaining + ' dias restantes de acesso';
+    }
+    if (data.warning) {
+      const w = document.getElementById('auth-warning');
+      w.innerHTML = '⚠ ' + data.message;
+      w.classList.add('visible');
+    }
+
+  } catch(e) {
+    console.error('Check email error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Continuar ✦';
+}
+
+// STEP 2: Register new account (create password + send verification code)
+async function registerAccount() {
+  clearAuthMessages();
+  const password = document.getElementById('auth-reg-password').value;
+  const confirm = document.getElementById('auth-reg-password-confirm').value;
+
+  if (!password || password.length < 6) {
+    showAuthError('A senha precisa ter pelo menos 6 caracteres.');
+    return;
+  }
+  if (password !== confirm) {
+    showAuthError('As senhas não coincidem.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-auth-register');
+  btn.disabled = true;
+  btn.textContent = 'Criando conta...';
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'register', 
+        email: pendingAuthEmail, 
+        password 
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // Show verification step
+      document.getElementById('auth-verify-email-display').textContent = pendingAuthEmail;
+      showAuthStep('verify');
+      showAuthSuccess('✦ Código de verificação enviado! Confira seu email.');
+    } else {
+      showAuthError(data.message || 'Erro ao criar conta. Tente novamente.');
+    }
+
+  } catch(e) {
+    console.error('Register error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Criar conta ✦';
+}
+
+// STEP 3: Verify email code
+async function verifyCode() {
+  clearAuthMessages();
+  const code = document.getElementById('auth-verify-code').value.trim();
+
+  if (!code || code.length !== 6) {
+    showAuthError('Digite o código de 6 dígitos enviado para seu email.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-auth-verify');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'verify-code', 
+        email: pendingAuthEmail, 
+        code 
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // Save auth and proceed
       localStorage.setItem(AUTH_KEY, JSON.stringify({
-        email, name: data.name,
+        email: pendingAuthEmail,
+        name: data.name,
         expiresAt: data.expiresAt,
-        verifiedAt: Date.now()
+        verifiedAt: Date.now(),
+        token: data.token
       }));
-      successEl.innerHTML = '✦ Acesso confirmado! Entrando...';
-      successEl.classList.add('visible');
-      if (data.warning) {
-        warningEl.innerHTML = '⚠ ' + data.message;
-        warningEl.classList.add('visible');
-      }
+      showAuthSuccess('✦ Email verificado! Entrando...');
+      setTimeout(() => proceedToApp(), 1500);
+    } else {
+      showAuthError(data.message || 'Código inválido ou expirado.');
+    }
+
+  } catch(e) {
+    console.error('Verify error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Verificar ✦';
+}
+
+// Resend verification code
+async function resendCode() {
+  clearAuthMessages();
+  const btn = document.getElementById('btn-resend-code');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'resend-code', 
+        email: pendingAuthEmail 
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showAuthSuccess('✦ Novo código enviado! Confira seu email.');
+    } else {
+      showAuthError(data.message || 'Erro ao reenviar. Tente novamente.');
+    }
+
+  } catch(e) {
+    console.error('Resend error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Reenviar código';
+}
+
+// STEP 4: Login with password
+async function loginAccount() {
+  clearAuthMessages();
+  const password = document.getElementById('auth-login-password').value;
+
+  if (!password) {
+    showAuthError('Digite sua senha.');
+    return;
+  }
+
+  const btn = document.getElementById('btn-auth-login');
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'login', 
+        email: pendingAuthEmail, 
+        password 
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem(AUTH_KEY, JSON.stringify({
+        email: pendingAuthEmail,
+        name: data.name,
+        expiresAt: data.expiresAt,
+        verifiedAt: Date.now(),
+        token: data.token
+      }));
+      showAuthSuccess('✦ Acesso confirmado! Entrando...');
       if (data.daysRemaining) {
-        daysEl.textContent = data.daysRemaining + ' dias restantes de acesso';
+        document.getElementById('auth-days').textContent = data.daysRemaining + ' dias restantes de acesso';
       }
       setTimeout(() => proceedToApp(), 1500);
     } else {
-      let msg = data.message || 'Acesso não encontrado.';
-      if (data.reason === 'expired' || data.reason === 'canceled') {
-        msg += '<br><br><a href="https://pay.hotmart.com/X105124340T" target="_blank">Renovar acesso à Serena →</a>';
-      } else {
-        msg += '<br><br><a href="https://pay.hotmart.com/R104334883O" target="_blank">Garanta seu acesso à Serena →</a>';
-      }
-      errorEl.innerHTML = msg;
-      errorEl.classList.add('visible');
-      btn.disabled = false;
-      btn.textContent = 'Entrar ✦';
+      showAuthError(data.message || 'Senha incorreta.');
     }
-  } catch (e) {
-    console.error('Auth error:', e);
-    errorEl.innerHTML = 'Erro de conexão. Tente novamente.';
-    errorEl.classList.add('visible');
-    btn.disabled = false;
-    btn.textContent = 'Entrar ✦';
+
+  } catch(e) {
+    console.error('Login error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
   }
+
+  btn.disabled = false;
+  btn.textContent = 'Entrar ✦';
+}
+
+// Forgot password — sends reset code via Resend
+async function forgotPassword() {
+  clearAuthMessages();
+  
+  const btn = document.querySelector('#auth-step-login button[onclick*="forgotPassword"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        action: 'forgot-password', 
+        email: pendingAuthEmail 
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      // Show verification step — code will be used to reset password
+      document.getElementById('auth-verify-email-display').textContent = pendingAuthEmail;
+      showAuthStep('verify');
+      showAuthSuccess('✦ Código de redefinição enviado! Confira seu email.');
+    } else {
+      showAuthError(data.message || 'Erro ao enviar código.');
+    }
+
+  } catch(e) {
+    console.error('Forgot password error:', e);
+    showAuthError('Erro de conexão. Tente novamente.');
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Esqueci minha senha'; }
 }
 
 function proceedToApp() {
@@ -1262,12 +1582,17 @@ function checkAuth() {
   if (!auth) return false;
   try {
     const data = JSON.parse(auth);
+    if (!data.token) {
+      localStorage.removeItem(AUTH_KEY);
+      return false;
+    }
     if (data.expiresAt && Date.now() > data.expiresAt) {
       localStorage.removeItem(AUTH_KEY);
       return false;
     }
+    // Re-verify every 24h
     if (Date.now() - data.verifiedAt > 86400000) {
-      reVerifyAccess(data.email);
+      reVerifyAccess(data.email, data.token);
     }
     return true;
   } catch(e) {
@@ -1276,18 +1601,19 @@ function checkAuth() {
   }
 }
 
-async function reVerifyAccess(email) {
+async function reVerifyAccess(email, token) {
   try {
-    const res = await fetch('/api/verify-access', {
+    const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ action: 'check-session', email, token })
     });
     const data = await res.json();
-    if (!data.access) {
+    if (!data.valid) {
       localStorage.removeItem(AUTH_KEY);
       alert('Seu acesso expirou ou foi cancelado. Faça login novamente.');
       showScreen('screen-auth');
+      showAuthStep('email');
     } else {
       const auth = JSON.parse(localStorage.getItem(AUTH_KEY));
       auth.verifiedAt = Date.now();
@@ -1301,6 +1627,8 @@ function logoutAuth() {
   localStorage.removeItem(AUTH_KEY);
   localStorage.removeItem(STORAGE_KEY);
   document.getElementById('btn-logout').style.display = 'none';
+  pendingAuthEmail = '';
+  showAuthStep('email');
   showScreen('screen-auth');
 }
 
