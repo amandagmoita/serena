@@ -3,17 +3,17 @@
 //
 // Required ENV vars:
 //   HOTMART_TOKEN — Hotmart API Bearer token
-//   KV_REST_API_URL — Vercel KV URL
-//   KV_REST_API_TOKEN — Vercel KV token
+//   UPSTASH_REDIS_REST_URL — Upstash Redis REST URL
+//   UPSTASH_REDIS_REST_TOKEN — Upstash Redis REST token
+//
+// Install: npm install @upstash/redis
 
-async function kvGet(key) {
-  const res = await fetch(`${process.env.KV_REST_API_URL}/get/${key}`, {
-    headers: { Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}` }
-  });
-  const data = await res.json();
-  if (data.result) return JSON.parse(data.result);
-  return null;
-}
+import { Redis } from '@upstash/redis';
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       }
 
       // Check if user has a Serena account
-      const userData = await kvGet(`user:${email}`);
+      const userData = await redis.get(`user:${email}`);
       const hasAccount = userData && userData.verified;
       const daysRemaining = expiresAt ? Math.ceil((expiresAt - now) / (24 * 60 * 60 * 1000)) : null;
 
